@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SplitEasy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { min-height: 100%; }
+    body { background: #0f0f1a; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes fadeIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse   { 0%,100% { opacity: .5 } 50% { opacity: .9 } }
+
+    .fade-in { animation: fadeIn 0.35s ease; }
+
+    .tab-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 10px 20px; font-size: 14px; font-weight: 600;
+      border-radius: 10px; transition: all 0.2s; font-family: inherit; color: #777;
+    }
+    .tab-btn:hover  { background: rgba(255,255,255,0.06); }
+    .tab-btn.active { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 18px; transition: all 0.2s;
+    }
+    .card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+
+    .btn {
+      border: none; cursor: pointer; border-radius: 12px;
+      font-weight: 600; font-size: 14px; padding: 10px 20px;
+      transition: all 0.2s; font-family: inherit;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.1); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #FF6B6B, #FF8E8E); color: #fff; }
+    .btn-ghost   { background: rgba(255,255,255,0.08); color: #ccc; }
+    .btn-danger  { background: rgba(255,80,80,0.15); color: #ff6b6b; }
+
+    .input {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px; padding: 10px 14px;
+      color: #e8e8f0; font-size: 14px; font-family: inherit;
+      width: 100%; outline: none; transition: border 0.2s;
+    }
+    .input:focus { border-color: rgba(255,107,107,0.5); }
+    select.input option { background: #1a1a2e; }
+
+    .toggle {
+      width: 40px; height: 22px; border-radius: 11px;
+      background: rgba(255,255,255,0.1);
+      cursor: pointer; position: relative; border: none; transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: linear-gradient(135deg, #4ECDC4, #44B8B0); }
+    .toggle-thumb {
+      position: absolute; width: 16px; height: 16px;
+      border-radius: 50%; background: white;
+      top: 3px; left: 3px; transition: left 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+    .toggle.on .toggle-thumb { left: 21px; }
+
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      display: flex; align-items: flex-start; justify-content: center;
+      z-index: 100; padding: 20px; overflow-y: auto;
+    }
+    .modal {
+      background: #161628;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 28px;
+      width: 100%; max-width: 480px; margin: auto;
+    }
+
+    .label {
+      font-size: 12px; font-weight: 600; color: #888;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+      display: block;
+    }
+
+    .serving-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 12px;
+      border: 1.5px solid transparent; transition: all 0.15s;
+    }
+    .serving-ctrl {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px; overflow: hidden; flex-shrink: 0;
+    }
+    .serving-btn {
+      background: none; border: none; color: #ccc; font-size: 18px;
+      width: 32px; height: 32px; cursor: pointer; font-weight: 700;
+      transition: background 0.15s; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
+    }
+    .serving-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .serving-val { font-size: 14px; font-weight: 700; color: #fff; min-width: 26px; text-align: center; }
+
+    .serving-badge {
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 10px; background: rgba(255,230,109,0.15); color: #FFE66D;
+    }
+    .breakdown-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; }
+
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: pulse 1.4s ease infinite;
+      border-radius: 10px;
+    }
+
+    .error-banner {
+      margin-bottom: 16px; padding: 10px 14px;
+      background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3);
+      border-radius: 12px; font-size: 13px; color: #ff8080;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .error-close {
+      background: none; border: none; color: #ff8080; cursor: pointer; font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    // ── Supabase config ──────────────────────────────────────
+    const SUPABASE_URL = "https://tqkimzplwikftvkkogih.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxa2ltenBsd2lrZnR2a2tvZ2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNzQzNjMsImV4cCI6MjA4Njk1MDM2M30.BInx6X4wqrL3ZeytYG9PSsKqGNl7WRCgNn6RPZt90OY";
+
+    const BASE_HEADERS = {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation",
+    };
+
+    async function sbFetch(path, options = {}) {
+      const { extraHeaders = {}, ...rest } = options;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+        headers: { ...BASE_HEADERS, ...extraHeaders },
+        ...rest,
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Supabase error ${res.status}: ${err}`);
+      }
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
+    }
+
+    // ── Constants ────────────────────────────────────────────
+    const COLORS = ["#FF6B6B", "#4ECDC4", "#FFE66D", "#A8E6CF", "#FF8B94", "#B8B8FF"];
+
+    function getColor(name, friends) {
+      const idx = friends.indexOf(name);
+      return COLORS[Math.max(0, idx) % COLORS.length];
+    }
+
+    // ── Sub-components ───────────────────────────────────────
+    function Avatar({ name, friends, size = 36 }) {
+      const color = getColor(name, friends);
+      return (
+        <div style={{
+          width: size, height: size, borderRadius: "50%", background: color,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontWeight: 700, fontSize: size * 0.38, color: "#1a1a2e", flexShrink: 0,
+          border: "2px solid rgba(255,255,255,0.15)",
+        }}>
+          {name[0].toUpperCase()}
+        </div>
+      );
+    }
+
+    function Spinner() {
+      return (
+        <div style={{
+          width: 18, height: 18,
+          border: "2px solid rgba(255,255,255,0.15)",
+          borderTopColor: "#FF6B6B",
+          borderRadius: "50%",
+          animation: "spin 0.7s linear infinite",
+          display: "inline-block",
+        }} />
+      );
+    }
+
+    // ── Math helpers ─────────────────────────────────────────
+    function getShare(amount, splits, person) {
+      const total = Object.values(splits).reduce((a, b) => a + b, 0);
+      if (total === 0) return 0;
+      return (splits[person] / total) * amount;
+    }
+
+    function computeBalances(expenses, friends) {
+      const bal = {};
+      friends.forEach(f => (bal[f] = 0));
+      expenses.forEach(exp => {
+        Object.entries(exp.splits).forEach(([person]) => {
+          if (person === exp.paid_by) return;
+          const share = getShare(exp.amount, exp.splits, person);
+          bal[exp.paid_by] = (bal[exp.paid_by] || 0) + share;
+          bal[person]      = (bal[person] || 0) - share;
+        });
+      });
+      return bal;
+    }
+
+    function computeRawDebts(expenses) {
+      const debts = {};
+      expenses.forEach(exp => {
+        Object.entries(exp.splits).forEach(([person]) => {
+          if (person === exp.paid_by) return;
+          const share = getShare(exp.amount, exp.splits, person);
+          const key = `${person}→${exp.paid_by}`;
+          debts[key] = (debts[key] || 0) + share;
+        });
+      });
+      const result = [];
+      const seen = new Set();
+      Object.entries(debts).forEach(([key, amt]) => {
+        if (seen.has(key)) return;
+        const [from, to] = key.split("→");
+        const rev    = `${to}→${from}`;
+        const revAmt = debts[rev] || 0;
+        seen.add(key); seen.add(rev);
+        const net = amt - revAmt;
+        if      (net >  0.01) result.push({ from,  to,   amount: net });
+        else if (net < -0.01) result.push({ from: to, to: from, amount: -net });
+      });
+      return result;
+    }
+
+    function simplifyDebts(expenses, friends) {
+      const bal = computeBalances(expenses, friends);
+      const c = Object.entries(bal)
+        .filter(([, b]) => b >  0.01)
+        .map(([name, amount]) => ({ name, amount }))
+        .sort((a, b) => b.amount - a.amount);
+      const d = Object.entries(bal)
+        .filter(([, b]) => b < -0.01)
+        .map(([name, amount]) => ({ name, amount: -amount }))
+        .sort((a, b) => b.amount - a.amount);
+
+      const txns = [];
+      let i = 0, j = 0;
+      const cc = c.map(x => ({ ...x }));
+      const dd = d.map(x => ({ ...x }));
+      while (i < cc.length && j < dd.length) {
+        const amt = Math.min(cc[i].amount, dd[j].amount);
+        txns.push({ from: dd[j].name, to: cc[i].name, amount: amt });
+        cc[i].amount -= amt;
+        dd[j].amount -= amt;
+        if (cc[i].amount < 0.01) i++;
+        if (dd[j].amount < 0.01) j++;
+      }
+      return txns;
+    }
+
+    function isEvenSplit(splits) {
+      const vals = Object.values(splits);
+      return vals.length > 0 && vals.every(v => v === 1);
+    }
+
+    // ── App ──────────────────────────────────────────────────
+    function App() {
+      const [friends,     setFriends]     = useState([]);
+      const [expenses,    setExpenses]    = useState([]);
+      const [tab,         setTab]         = useState("expenses");
+      const [simplified,  setSimplified]  = useState(false);
+      const [loading,     setLoading]     = useState(true);
+      const [saving,      setSaving]      = useState(false);
+      const [error,       setError]       = useState(null);
+
+      const [showAddExpense, setShowAddExpense] = useState(false);
+      const [showAddFriend,  setShowAddFriend]  = useState(false);
+      const [newFriend, setNewFriend] = useState("");
+      const [form, setForm] = useState({ description: "", amount: "", paid_by: "", splits: {} });
+
+      // ── Load ──
+      const loadData = useCallback(async () => {
+        setLoading(true); setError(null);
+        try {
+          const [friendRows, expenseRows, splitRows] = await Promise.all([
+            sbFetch("/friends?order=created_at.asc&select=name"),
+            sbFetch("/expenses?order=created_at.desc&select=id,description,amount,paid_by,date"),
+            sbFetch("/expense_splits?select=expense_id,person_name,servings"),
+          ]);
+          const friendNames = (friendRows || []).map(f => f.name);
+          const splitMap = {};
+          (splitRows || []).forEach(s => {
+            if (!splitMap[s.expense_id]) splitMap[s.expense_id] = {};
+            splitMap[s.expense_id][s.person_name] = s.servings;
+          });
+          const exps = (expenseRows || []).map(e => ({
+            ...e,
+            amount: parseFloat(e.amount),
+            splits: splitMap[e.id] || {},
+          }));
+          setFriends(friendNames);
+          setExpenses(exps);
+        } catch (e) {
+          setError(e.message);
+        } finally {
+          setLoading(false);
+        }
+      }, []);
+
+      useEffect(() => { loadData(); }, [loadData]);
+
+      // ── Add friend ──
+      async function addFriend() {
+        const name = newFriend.trim();
+        if (!name || friends.includes(name)) return;
+        setSaving(true);
+        try {
+          await sbFetch("/friends", { method: "POST", body: JSON.stringify({ name }) });
+          setFriends(prev => [...prev, name]);
+          setNewFriend(""); setShowAddFriend(false);
+        } catch (e) { setError(e.message); }
+        finally { setSaving(false); }
+      }
+
+      // ── Add expense ──
+      async function addExpense() {
+        if (!form.description || !form.amount || !form.paid_by || Object.keys(form.splits).length === 0) return;
+        const amt = parseFloat(form.amount);
+        if (isNaN(amt) || amt <= 0) return;
+        setSaving(true);
+        try {
+          const [expRow] = await sbFetch("/expenses", {
+            method: "POST",
+            body: JSON.stringify({
+              description: form.description,
+              amount: amt,
+              paid_by: form.paid_by,
+              date: new Date().toISOString().split("T")[0],
+            }),
+          });
+          const splitInserts = Object.entries(form.splits).map(([person_name, servings]) => ({
+            expense_id: expRow.id, person_name, servings,
+          }));
+          await sbFetch("/expense_splits", { method: "POST", body: JSON.stringify(splitInserts) });
+          setExpenses(prev => [{ ...expRow, amount: parseFloat(expRow.amount), splits: { ...form.splits } }, ...prev]);
+          setForm({ description: "", amount: "", paid_by: "", splits: {} });
+          setShowAddExpense(false);
+        } catch (e) { setError(e.message); }
+        finally { setSaving(false); }
+      }
+
+      // ── Delete expense ──
+      async function deleteExpense(id) {
+        setSaving(true);
+        try {
+          await sbFetch(`/expenses?id=eq.${id}`, {
+            method: "DELETE",
+            extraHeaders: { "Prefer": "" },
+          });
+          setExpenses(prev => prev.filter(e => e.id !== id));
+        } catch (e) { setError(e.message); }
+        finally { setSaving(false); }
+      }
+
+      // ── Form helpers ──
+      function togglePerson(name) {
+        setForm(prev => {
+          const splits = { ...prev.splits };
+          if (splits[name] !== undefined) delete splits[name];
+          else splits[name] = 2;
+          return { ...prev, splits };
+        });
+      }
+      function setServings(name, val) {
+        const v = Math.max(1, Math.min(99, val));
+        setForm(prev => ({ ...prev, splits: { ...prev.splits, [name]: v } }));
+      }
+
+      // ── Derived ──
+      const balances        = computeBalances(expenses, friends);
+      const rawDebts        = computeRawDebts(expenses);
+      const simplifiedDebts = simplifyDebts(expenses, friends);
+      const settleDebts     = simplified ? simplifiedDebts : rawDebts;
+      const totalExpenses   = expenses.reduce((s, e) => s + e.amount, 0);
+      const totalSrvForm    = Object.values(form.splits).reduce((a, b) => a + b, 0);
+      const formAmt         = parseFloat(form.amount) || 0;
+
+      // ── Render ──
+      return (
+        <div style={{ minHeight: "100vh", background: "#0f0f1a", fontFamily: "'DM Sans','Segoe UI',sans-serif", color: "#e8e8f0" }}>
+
+          {/* ── Header ── */}
+          <div style={{ padding: "24px 24px 0", maxWidth: 680, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div>
+                <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>
+                  split<span style={{ color: "#FF6B6B" }}>easy</span>
+                </h1>
+                <p style={{ fontSize: 13, color: "#666", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                  {loading
+                    ? <span className="skeleton" style={{ width: 130, height: 13, display: "inline-block" }} />
+                    : `${friends.length} friends · $${totalExpenses.toFixed(2)} total`}
+                  {saving && <Spinner />}
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btn btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}
+                  onClick={() => setShowAddFriend(true)} disabled={loading}>
+                  + Friend
+                </button>
+                <button className="btn btn-primary"
+                  onClick={() => setShowAddExpense(true)} disabled={loading || friends.length === 0}>
+                  + Expense
+                </button>
+              </div>
+            </div>
+
+            {/* Error banner */}
+            {error && (
+              <div className="error-banner">
+                <span>⚠ {error}</span>
+                <button className="error-close" onClick={() => setError(null)}>✕</button>
+              </div>
+            )}
+
+            {/* Friend avatars */}
+            {loading && (
+              <div style={{ display: "flex", gap: 14, marginBottom: 24 }}>
+                {[1,2,3].map(i => <div key={i} className="skeleton" style={{ width: 40, height: 40, borderRadius: "50%" }} />)}
+              </div>
+            )}
+            {!loading && (
+              <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+                {friends.map(f => {
+                  const bal = balances[f] || 0;
+                  return (
+                    <div key={f} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+                      <Avatar name={f} friends={friends} size={40} />
+                      <span style={{ fontSize: 11, color: "#888" }}>{f}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: bal > 0.01 ? "#4ECDC4" : bal < -0.01 ? "#FF6B6B" : "#666" }}>
+                        {bal > 0.01 ? `+$${bal.toFixed(0)}` : bal < -0.01 ? `-$${Math.abs(bal).toFixed(0)}` : "even"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Tabs */}
+            <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", borderRadius: 14, padding: 4, marginBottom: 20 }}>
+              {["expenses","balances","settle"].map(t => (
+                <button key={t} className={`tab-btn${tab === t ? " active" : ""}`}
+                  style={{ flex: 1, textTransform: "capitalize" }}
+                  onClick={() => setTab(t)}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Tab content ── */}
+          <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 24px 60px" }} className="fade-in" key={tab}>
+
+            {/* EXPENSES */}
+            {tab === "expenses" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {loading && [1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 110, borderRadius: 16 }} />)}
+                {!loading && expenses.length === 0 && (
+                  <div style={{ textAlign: "center", color: "#555", padding: "60px 0" }}>
+                    <div style={{ fontSize: 36, marginBottom: 12 }}>🍽</div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: "#666" }}>No expenses yet</div>
+                    <div style={{ fontSize: 13, color: "#444", marginTop: 4 }}>Add your first expense to get started</div>
+                  </div>
+                )}
+                {expenses.map(exp => {
+                  const people   = Object.keys(exp.splits);
+                  const totalSrv = Object.values(exp.splits).reduce((a, b) => a + b, 0);
+                  const custom   = !isEvenSplit(exp.splits);
+                  return (
+                    <div key={exp.id} className="card">
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,107,107,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>💳</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                              <span style={{ fontWeight: 700, fontSize: 15, color: "#fff" }}>{exp.description}</span>
+                              {custom && <span className="serving-badge">⚖ custom servings</span>}
+                            </div>
+                            <span style={{ fontWeight: 800, fontSize: 18, color: "#fff", flexShrink: 0 }}>${exp.amount.toFixed(2)}</span>
+                          </div>
+                          <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                            <span style={{ fontSize: 12, color: "#888" }}>Paid by</span>
+                            <Avatar name={exp.paid_by} friends={friends} size={18} />
+                            <span style={{ fontSize: 12, color: "#bbb", fontWeight: 600 }}>{exp.paid_by}</span>
+                            <span style={{ fontSize: 12, color: "#666" }}>·</span>
+                            <span style={{ fontSize: 12, color: "#888" }}>{totalSrv} serving{totalSrv !== 1 ? "s" : ""}</span>
+                            <span style={{ fontSize: 12, color: "#666" }}>·</span>
+                            <span style={{ fontSize: 12, color: "#666" }}>{exp.date}</span>
+                          </div>
+                          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
+                            {people.map(p => {
+                              const share = getShare(exp.amount, exp.splits, p);
+                              const srv   = exp.splits[p];
+                              const color = getColor(p, friends);
+                              const pct   = (srv / totalSrv) * 100;
+                              return (
+                                <div key={p} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <Avatar name={p} friends={friends} size={20} />
+                                  <span style={{ fontSize: 12, color: "#bbb", minWidth: 46 }}>{p}</span>
+                                  {custom && <span style={{ fontSize: 11, color: "#555", minWidth: 60 }}>×{srv} srv</span>}
+                                  <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                                    <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 2 }} />
+                                  </div>
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", minWidth: 52, textAlign: "right" }}>${share.toFixed(2)}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <button className="btn btn-danger" style={{ padding: "6px 10px", fontSize: 13, flexShrink: 0 }}
+                          onClick={() => deleteExpense(exp.id)} disabled={saving}>✕</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* BALANCES */}
+            {tab === "balances" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {loading && [1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 90, borderRadius: 16 }} />)}
+                {!loading && friends.map(f => {
+                  const bal    = balances[f] || 0;
+                  const isOwed = bal >  0.01;
+                  const owes   = bal < -0.01;
+                  const pct    = totalExpenses > 0 ? Math.abs(bal) / (totalExpenses / Math.max(1, friends.length)) * 50 : 0;
+                  return (
+                    <div key={f} className="card">
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <Avatar name={f} friends={friends} size={42} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span style={{ fontWeight: 700, color: "#fff", fontSize: 15 }}>{f}</span>
+                            <span style={{ fontWeight: 800, fontSize: 17, color: isOwed ? "#4ECDC4" : owes ? "#FF6B6B" : "#666" }}>
+                              {isOwed ? `+$${bal.toFixed(2)}` : owes ? `-$${Math.abs(bal).toFixed(2)}` : "settled up"}
+                            </span>
+                          </div>
+                          <div style={{ marginTop: 8, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${Math.min(pct,100)}%`, borderRadius: 3, transition: "width 0.5s",
+                              background: isOwed ? "linear-gradient(90deg,#4ECDC4,#44B8B0)" : owes ? "linear-gradient(90deg,#FF6B6B,#FF8E8E)" : "transparent" }} />
+                          </div>
+                          <div style={{ marginTop: 4, fontSize: 12, color: "#666" }}>
+                            {isOwed ? `gets back $${bal.toFixed(2)}` : owes ? `owes $${Math.abs(bal).toFixed(2)}` : "all settled"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* SETTLE */}
+            {tab === "settle" && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                  <div>
+                    <div style={{ fontWeight: 700, color: "#fff", fontSize: 16 }}>Settlement Plan</div>
+                    <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>
+                      {settleDebts.length} transaction{settleDebts.length !== 1 ? "s" : ""} needed
+                      {simplified && rawDebts.length > simplifiedDebts.length && (
+                        <span style={{ color: "#4ECDC4", marginLeft: 8, fontWeight: 600 }}>
+                          saved {rawDebts.length - simplifiedDebts.length} txn{rawDebts.length - simplifiedDebts.length !== 1 ? "s" : ""}!
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 12, color: "#888" }}>Simplify</span>
+                    <button className={`toggle${simplified ? " on" : ""}`} onClick={() => setSimplified(s => !s)}>
+                      <div className="toggle-thumb" />
+                    </button>
+                  </div>
+                </div>
+
+                {!simplified && rawDebts.length > simplifiedDebts.length && (
+                  <div style={{ marginBottom: 14, padding: "10px 14px", background: "rgba(255,230,109,0.07)", border: "1px solid rgba(255,230,109,0.15)", borderRadius: 12, fontSize: 13, color: "#FFE66D" }}>
+                    💡 Toggle "Simplify" to reduce {rawDebts.length} transactions to {simplifiedDebts.length}
+                  </div>
+                )}
+
+                {loading && [1,2].map(i => <div key={i} className="skeleton" style={{ height: 70, borderRadius: 16, marginBottom: 10 }} />)}
+                {!loading && settleDebts.length === 0 && (
+                  <div style={{ textAlign: "center", color: "#555", padding: "40px 0", fontSize: 15 }}>🎉 Everyone is settled up!</div>
+                )}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {settleDebts.map((d, i) => (
+                    <div key={i} className="card" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <Avatar name={d.from} friends={friends} size={40} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                          <span style={{ fontWeight: 700, color: "#fff" }}>{d.from}</span>
+                          <span style={{ color: "#555", fontSize: 13 }}>pays</span>
+                          <span style={{ fontWeight: 800, fontSize: 17, color: "#FF6B6B" }}>${d.amount.toFixed(2)}</span>
+                          <span style={{ color: "#555", fontSize: 13 }}>to</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <Avatar name={d.to} friends={friends} size={22} />
+                            <span style={{ fontWeight: 700, color: "#fff" }}>{d.to}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(78,205,196,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>→</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Add Expense Modal ── */}
+          {showAddExpense && (
+            <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAddExpense(false)}>
+              <div className="modal fade-in">
+                <h2 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 22, marginBottom: 22 }}>Add Expense</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+                  <div>
+                    <label className="label">Description</label>
+                    <input className="input" placeholder="e.g. Dinner, Uber, Groceries"
+                      value={form.description}
+                      onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+                  </div>
+
+                  <div>
+                    <label className="label">Amount ($)</label>
+                    <input className="input" type="number" placeholder="0.00" min="0" step="0.01"
+                      value={form.amount}
+                      onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
+                  </div>
+
+                  <div>
+                    <label className="label">Paid by</label>
+                    <select className="input" value={form.paid_by}
+                      onChange={e => setForm(f => ({ ...f, paid_by: e.target.value }))}>
+                      <option value="">Select person</option>
+                      {friends.map(f => <option key={f} value={f}>{f}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <span className="label" style={{ margin: 0 }}>Split & Servings</span>
+                      <div style={{ display: "flex", gap: 10 }}>
+                        <button style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}
+                          onClick={() => setForm(f => ({ ...f, splits: Object.fromEntries(friends.map(n => [n, 2])) }))}>
+                          All (×2)
+                        </button>
+                        <span style={{ color: "#444" }}>·</span>
+                        <button style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 12, fontFamily: "inherit" }}
+                          onClick={() => setForm(f => ({ ...f, splits: {} }))}>
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      {friends.map(name => {
+                        const isIn     = form.splits[name] !== undefined;
+                        const servings = form.splits[name] || 2;
+                        const color    = getColor(name, friends);
+                        const shareAmt = isIn && formAmt > 0 && totalSrvForm > 0
+                          ? (servings / totalSrvForm) * formAmt : null;
+                        return (
+                          <div key={name} className="serving-row"
+                            style={{ borderColor: isIn ? `${color}40` : "transparent", background: isIn ? `${color}0d` : "transparent" }}>
+                            <div onClick={() => togglePerson(name)}
+                              style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, cursor: "pointer", userSelect: "none" }}>
+                              <div style={{
+                                width: 22, height: 22, borderRadius: 6,
+                                border: `2px solid ${isIn ? color : "#3a3a4a"}`,
+                                background: isIn ? color : "transparent",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                transition: "all 0.15s", flexShrink: 0,
+                              }}>
+                                {isIn && <span style={{ color: "#0f0f1a", fontSize: 13, fontWeight: 900, lineHeight: 1 }}>✓</span>}
+                              </div>
+                              <Avatar name={name} friends={friends} size={26} />
+                              <span style={{ fontWeight: 600, fontSize: 14, color: isIn ? "#fff" : "#555" }}>{name}</span>
+                            </div>
+
+                            {isIn ? (
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                {shareAmt !== null && (
+                                  <span style={{ fontSize: 13, fontWeight: 700, color: "#bbb", minWidth: 52, textAlign: "right" }}>
+                                    ${shareAmt.toFixed(2)}
+                                  </span>
+                                )}
+                                <div className="serving-ctrl">
+                                  <button className="serving-btn" onClick={e => { e.stopPropagation(); setServings(name, servings - 1); }}>−</button>
+                                  <span className="serving-val">{servings}</span>
+                                  <button className="serving-btn" onClick={e => { e.stopPropagation(); setServings(name, servings + 1); }}>+</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: 12, color: "#3a3a4a", paddingRight: 4 }}>tap to add</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Live cost breakdown */}
+                    {Object.keys(form.splits).length > 0 && formAmt > 0 && (
+                      <div style={{ marginTop: 12, padding: "12px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)" }}>
+                        <div style={{ fontSize: 11, color: "#555", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Cost breakdown</div>
+                        {Object.entries(form.splits).map(([name, srv]) => {
+                          const share = (srv / totalSrvForm) * formAmt;
+                          const color = getColor(name, friends);
+                          return (
+                            <div key={name} className="breakdown-row">
+                              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                                <Avatar name={name} friends={friends} size={18} />
+                                <span style={{ fontSize: 13, color: "#ccc" }}>{name}</span>
+                                <span style={{ fontSize: 11, color: "#666", background: `${color}20`, padding: "1px 6px", borderRadius: 8 }}>×{srv}</span>
+                              </div>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>${share.toFixed(2)}</span>
+                            </div>
+                          );
+                        })}
+                        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: 8, paddingTop: 8, display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ fontSize: 12, color: "#555" }}>{totalSrvForm} total serving{totalSrvForm !== 1 ? "s" : ""}</span>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: "#FF6B6B" }}>${formAmt.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                    <button className="btn btn-ghost" style={{ flex: 1 }}
+                      onClick={() => { setShowAddExpense(false); setForm({ description: "", amount: "", paid_by: "", splits: {} }); }}>
+                      Cancel
+                    </button>
+                    <button className="btn btn-primary" style={{ flex: 2 }} onClick={addExpense} disabled={saving}>
+                      {saving ? <Spinner /> : "Add Expense"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Add Friend Modal ── */}
+          {showAddFriend && (
+            <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAddFriend(false)}>
+              <div className="modal fade-in" style={{ maxWidth: 340 }}>
+                <h2 style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 22, marginBottom: 20 }}>Add Friend</h2>
+                <input className="input" placeholder="Friend's name" value={newFriend} autoFocus
+                  onChange={e => setNewFriend(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && addFriend()} />
+                <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                  <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setShowAddFriend(false)}>Cancel</button>
+                  <button className="btn btn-primary" style={{ flex: 2 }} onClick={addFriend} disabled={saving}>
+                    {saving ? <Spinner /> : "Add Friend"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
