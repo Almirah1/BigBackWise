@@ -732,7 +732,7 @@
 
           {/* ── FAB ── */}
           {tab!=="agenda" && (
-            <button id="fab" onClick={()=>setShowExpense(true)} disabled={loading||friends.length===0}>+</button>
+            <button id="fab" onClick={()=>{ setForm(f=>({...f, splits:Object.fromEntries(friends.map(n=>[n,2]))})); setShowExpense(true); }} disabled={loading||friends.length===0}>+</button>
           )}
 
           {/* ── Bottom nav ── */}
