@@ -349,6 +349,9 @@
       const [newTopic,    setNewTopic]    = useState("");
       const [addedBy,     setAddedBy]     = useState("");
       const [form, setForm] = useState({ description:"", amount:"", paid_by:"", splits:{} });
+      const [myName, setMyName] = useState(() => localStorage.getItem("bbw_myname") || "");
+
+      useEffect(() => { if (myName) localStorage.setItem("bbw_myname", myName); else localStorage.removeItem("bbw_myname"); }, [myName]);
 
       const loadData = useCallback(async () => {
         setLoading(true); setError(null);
@@ -461,6 +464,7 @@
         {id:"balances", icon:"⚖️",  label:"Balances"},
         {id:"settle",   icon:"🤝",  label:"Settle"},
         {id:"agenda",   icon:"📋",  label:"Agenda"},
+        {id:"settings", icon:"⚙️",  label:"Settings"},
       ];
 
       return (
@@ -727,12 +731,55 @@
                   })}
                 </div>
               )}
+
+              {/* SETTINGS */}
+              {tab==="settings" && (
+                <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+                  <div className="card">
+                    <div style={{ marginBottom:14 }}>
+                      <div style={{ fontSize:16, fontWeight:700, color:"#fff", marginBottom:4 }}>Who are you?</div>
+                      <div style={{ fontSize:13, color:"#666" }}>Pick your name so expenses are pre-filled with you as the payer.</div>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      {friends.map(f => {
+                        const isMe = myName === f;
+                        const col  = getColor(f, friends);
+                        return (
+                          <button key={f} onClick={() => setMyName(isMe ? "" : f)} style={{
+                            display:"flex", alignItems:"center", gap:12,
+                            padding:"12px 14px", borderRadius:12,
+                            border:`2px solid ${isMe ? col : "rgba(255,255,255,0.08)"}`,
+                            background: isMe ? `${col}15` : "rgba(255,255,255,0.03)",
+                            cursor:"pointer", transition:"all 0.18s", textAlign:"left", width:"100%",
+                          }}>
+                            <Avatar name={f} friends={friends} size={36} />
+                            <span style={{ fontWeight:600, fontSize:15, color: isMe ? "#fff" : "#aaa", flex:1 }}>{f}</span>
+                            {isMe && <span style={{ fontSize:12, fontWeight:700, color:col, background:`${col}20`, padding:"3px 10px", borderRadius:20 }}>That's me ✓</span>}
+                          </button>
+                        );
+                      })}
+                      {friends.length === 0 && <div style={{ color:"#555", fontSize:13 }}>No friends added yet.</div>}
+                    </div>
+                    {myName && (
+                      <button onClick={() => setMyName("")} style={{ marginTop:14, background:"none", border:"none", color:"#555", cursor:"pointer", fontSize:13, fontFamily:"inherit", textDecoration:"underline" }}>
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
+                  {myName && (
+                    <div style={{ padding:"12px 16px", background:"rgba(78,205,196,0.08)", border:"1px solid rgba(78,205,196,0.2)", borderRadius:12, fontSize:13, color:"#4ECDC4" }}>
+                      ✓ New expenses will default to <strong>{myName}</strong> as the payer.
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
           </div>
 
           {/* ── FAB ── */}
-          {tab!=="agenda" && (
-            <button id="fab" onClick={()=>{ setForm(f=>({...f, splits:Object.fromEntries(friends.map(n=>[n,2]))})); setShowExpense(true); }} disabled={loading||friends.length===0}>+</button>
+          {tab!=="agenda" && tab!=="settings" && (
+            <button id="fab" onClick={()=>{ const payer = myName && friends.includes(myName) ? myName : ""; setForm(f=>({...f, paid_by:payer, splits:Object.fromEntries(friends.map(n=>[n,2]))})); setShowExpense(true); }} disabled={loading||friends.length===0}>+</button>
           )}
 
           {/* ── Bottom nav ── */}
