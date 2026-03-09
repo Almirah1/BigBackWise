@@ -344,7 +344,9 @@
       const [saving,      setSaving]      = useState(false);
       const [error,       setError]       = useState(null);
       const [showExpense, setShowExpense] = useState(false);
-      const [editingExpense, setEditingExpense] = useState(null); // id of expense being edited
+      const [editingExpense, setEditingExpense] = useState(null);
+      const [expandedExpenses, setExpandedExpenses] = useState(new Set());
+      const [splitMode, setSplitMode] = useState('servings'); // 'servings' | 'custom'
       const [showFriend,  setShowFriend]  = useState(false);
       const [newFriend,   setNewFriend]   = useState("");
       const [newTopic,    setNewTopic]    = useState("");
@@ -436,6 +438,10 @@
       }
 
       function openEdit(exp) {
+        // Detect if this expense used custom amounts (values > 99 indicate stored as cents*100 or raw $, we use >2 threshold: servings are small integers)
+        const vals = Object.values(exp.splits);
+        const isCustom = vals.some(v => v > 99 || !Number.isInteger(v));
+        setSplitMode(isCustom ? 'custom' : 'servings');
         setForm({ description:exp.description, amount:String(exp.amount), paid_by:exp.paid_by, splits:{...exp.splits} });
         setEditingExpense(exp.id);
         setShowExpense(true);
@@ -469,6 +475,14 @@
           await sbFetch(`/agenda_items?id=eq.${id}`, { method:"DELETE", extraHeaders:{Prefer:""} });
           setAgendaItems(p=>p.filter(a=>a.id!==id));
         } catch(e) { setError(e.message); } finally { setSaving(false); }
+      }
+
+      function toggleExpand(id) {
+        setExpandedExpenses(prev => {
+          const next = new Set(prev);
+          if (next.has(id)) next.delete(id); else next.add(id);
+          return next;
+        });
       }
 
       function togglePerson(name) {
@@ -565,28 +579,38 @@
                     </div>
                   )}
                   {expenses.map(exp=>{
-                    const people = Object.keys(exp.splits);
-                    const totSrv = Object.values(exp.splits).reduce((a,b)=>a+b,0);
-                    const custom = !people.every(p=>exp.splits[p]===1);
+                    const people  = Object.keys(exp.splits);
+                    const totSrv  = Object.values(exp.splits).reduce((a,b)=>a+b,0);
+                    const isCustomAmounts = totSrv > people.length * 99;
+                    const expanded = expandedExpenses.has(exp.id);
                     return (
-                      <div key={exp.id} className="card">
-                        <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-                          <div style={{ width:40, height:40, borderRadius:10, background:"rgba(255,107,107,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>💳</div>
+                      <div key={exp.id} className="card" style={{ padding:0, overflow:"hidden" }}>
+                        {/* ── Collapsed header (always visible) ── */}
+                        <div onClick={()=>toggleExpand(exp.id)}
+                          style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px", cursor:"pointer", userSelect:"none" }}>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
-                              <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
-                                <span style={{ fontWeight:700, fontSize:15, color:"#fff" }}>{exp.description}</span>
-                                {custom && <span className="serving-badge">⚖ custom</span>}
+                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8 }}>
+                              <span style={{ fontWeight:700, fontSize:15, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{exp.description}</span>
+                              <span style={{ fontWeight:800, fontSize:16, color:"#fff", flexShrink:0 }}>${exp.amount.toFixed(2)}</span>
+                            </div>
+                            <div style={{ marginTop:3, display:"flex", alignItems:"center", gap:5, flexWrap:"wrap" }}>
+                              <Avatar name={exp.paid_by} friends={friends} size={14}/>
+                              <span style={{ fontSize:12, color:"#888" }}>{exp.paid_by}</span>
+                              <span style={{ fontSize:12, color:"#444" }}>·</span>
+                              <div style={{ display:"flex", gap:4 }}>
+                                {people.map(p=><Avatar key={p} name={p} friends={friends} size={14}/>)}
                               </div>
-                              <span style={{ fontWeight:800, fontSize:17, color:"#fff", flexShrink:0 }}>${exp.amount.toFixed(2)}</span>
+                              <span style={{ fontSize:12, color:"#444" }}>·</span>
+                              <span style={{ fontSize:12, color:"#555" }}>{exp.date}</span>
                             </div>
-                            <div style={{ marginTop:4, display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
-                              <span style={{ fontSize:12, color:"#888" }}>Paid by</span>
-                              <Avatar name={exp.paid_by} friends={friends} size={16}/>
-                              <span style={{ fontSize:12, color:"#bbb", fontWeight:600 }}>{exp.paid_by}</span>
-                              <span style={{ fontSize:12, color:"#555" }}>· {exp.date}</span>
-                            </div>
-                            <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:4 }}>
+                          </div>
+                          <span style={{ fontSize:14, color:"#444", flexShrink:0, transition:"transform 0.2s", display:"inline-block", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+                        </div>
+
+                        {/* ── Expanded detail ── */}
+                        {expanded && (
+                          <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", padding:"12px 14px 14px" }}>
+                            <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:12 }}>
                               {people.map(p=>{
                                 const share = getShare(exp.amount, exp.splits, p);
                                 const pct   = (exp.splits[p]/totSrv)*100;
@@ -594,23 +618,26 @@
                                 return (
                                   <div key={p} style={{ display:"flex", alignItems:"center", gap:8 }}>
                                     <Avatar name={p} friends={friends} size={18}/>
-                                    <span style={{ fontSize:12, color:"#bbb", minWidth:44 }}>{p}</span>
-                                    <div style={{ flex:1, height:4, background:"rgba(255,255,255,0.05)", borderRadius:2, overflow:"hidden" }}>
-                                      <div style={{ height:"100%", width:`${pct}%`, background:col, borderRadius:2 }}/>
-                                    </div>
+                                    <span style={{ fontSize:12, color:"#bbb", minWidth:50 }}>{p}</span>
+                                    {!isCustomAmounts && (
+                                      <div style={{ flex:1, height:4, background:"rgba(255,255,255,0.05)", borderRadius:2, overflow:"hidden" }}>
+                                        <div style={{ height:"100%", width:`${pct}%`, background:col, borderRadius:2 }}/>
+                                      </div>
+                                    )}
+                                    {isCustomAmounts && <div style={{ flex:1 }}/>}
                                     <span style={{ fontSize:12, fontWeight:700, color:"#fff", minWidth:50, textAlign:"right" }}>${share.toFixed(2)}</span>
                                   </div>
                                 );
                               })}
                             </div>
+                            <div style={{ display:"flex", gap:8, justifyContent:"flex-end" }}>
+                              <button className="btn btn-ghost" style={{ padding:"6px 12px", fontSize:13 }}
+                                onClick={e=>{e.stopPropagation();openEdit(exp);}} disabled={saving}>✏️ Edit</button>
+                              <button className="btn btn-danger" style={{ padding:"6px 12px", fontSize:13 }}
+                                onClick={e=>{e.stopPropagation();deleteExpense(exp.id);}} disabled={saving}>✕ Delete</button>
+                            </div>
                           </div>
-                          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                            <button className="btn btn-ghost" style={{ padding:"5px 9px", fontSize:13, flexShrink:0 }}
-                              onClick={()=>openEdit(exp)} disabled={saving}>✏️</button>
-                            <button className="btn btn-danger" style={{ padding:"5px 9px", fontSize:13, flexShrink:0 }}
-                              onClick={()=>deleteExpense(exp.id)} disabled={saving}>✕</button>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     );
                   })}
@@ -817,7 +844,7 @@
 
           {/* ── FAB ── */}
           {tab!=="agenda" && tab!=="settings" && (
-            <button id="fab" onClick={()=>{ const payer = myName && friends.includes(myName) ? myName : ""; setEditingExpense(null); setForm({description:"",amount:"",paid_by:payer,splits:Object.fromEntries(friends.map(n=>[n,2]))}); setShowExpense(true); }} disabled={loading||friends.length===0}>+</button>
+            <button id="fab" onClick={()=>{ const payer = myName && friends.includes(myName) ? myName : ""; setEditingExpense(null); setSplitMode('servings'); setForm({description:"",amount:"",paid_by:payer,splits:Object.fromEntries(friends.map(n=>[n,2]))}); setShowExpense(true); }} disabled={loading||friends.length===0}>+</button>
           )}
 
           {/* ── Bottom nav ── */}
@@ -862,24 +889,66 @@
                   </div>
 
                   <div>
+                    {/* Mode toggle header */}
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                      <span className="label" style={{ margin:0 }}>Split & Servings</span>
-                      <div style={{ display:"flex", gap:10 }}>
+                      <span className="label" style={{ margin:0 }}>Split</span>
+                      <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:2, gap:2 }}>
+                        {['servings','custom'].map(m=>(
+                          <button key={m} onClick={()=>{
+                            setSplitMode(m);
+                            // When switching to custom, convert existing servings to dollar amounts
+                            if (m==='custom' && formAmt>0) {
+                              const tot = Object.values(form.splits).reduce((a,b)=>a+b,0);
+                              if (tot>0) {
+                                setForm(f=>({ ...f, splits:Object.fromEntries(
+                                  Object.entries(f.splits).map(([n,v])=>[n, parseFloat(((v/tot)*formAmt).toFixed(2))])
+                                )}));
+                              }
+                            }
+                            // When switching to servings, reset to 2 each
+                            if (m==='servings') {
+                              setForm(f=>({ ...f, splits:Object.fromEntries(Object.keys(f.splits).map(n=>[n,2])) }));
+                            }
+                          }} style={{
+                            background: splitMode===m ? "rgba(255,255,255,0.12)" : "none",
+                            border:"none", color: splitMode===m ? "#fff" : "#666",
+                            borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600,
+                            cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s"
+                          }}>
+                            {m==='servings' ? '× Servings' : '$ Amount'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Quick actions */}
+                    <div style={{ display:"flex", justifyContent:"flex-end", gap:10, marginBottom:8 }}>
+                      {splitMode==='servings' && (
                         <button style={{ background:"none", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}
                           onClick={()=>setForm(f=>({...f, splits:Object.fromEntries(friends.map(n=>[n,2]))}))}>All ×2</button>
-                        <span style={{ color:"#333" }}>·</span>
+                      )}
+                      {splitMode==='custom' && formAmt>0 && (
                         <button style={{ background:"none", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}
-                          onClick={()=>setForm(f=>({...f, splits:f.paid_by?{[f.paid_by]:f.splits[f.paid_by]||2}:{}}))}>Clear</button>
-                      </div>
+                          onClick={()=>{
+                            const each = parseFloat((formAmt / Object.keys(form.splits).length).toFixed(2));
+                            setForm(f=>({...f, splits:Object.fromEntries(Object.keys(f.splits).map(n=>[n,each]))}));
+                          }}>Split evenly</button>
+                      )}
+                      <span style={{ color:"#333" }}>·</span>
+                      <button style={{ background:"none", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}
+                        onClick={()=>setForm(f=>({...f, splits:f.paid_by?{[f.paid_by]:splitMode==='servings'?2:0}:{}}))}>Clear</button>
                     </div>
 
                     <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
                       {friends.map(name=>{
-                        const isPayer = name===form.paid_by;
-                        const isIn    = form.splits[name]!==undefined;
-                        const srv     = form.splits[name]||2;
-                        const col     = getColor(name, friends);
-                        const share   = isIn&&formAmt>0&&totalSrv>0 ? (srv/totalSrv)*formAmt : null;
+                        const isPayer  = name===form.paid_by;
+                        const isIn     = form.splits[name]!==undefined;
+                        const srv      = form.splits[name]||2;
+                        const col      = getColor(name, friends);
+                        // For servings mode: calculated share; for custom: srv IS the dollar amount
+                        const share    = splitMode==='servings'
+                          ? (isIn&&formAmt>0&&totalSrv>0 ? (srv/totalSrv)*formAmt : null)
+                          : (isIn ? srv : null);
                         return (
                           <div key={name} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 10px", borderRadius:12,
                             border:`1.5px solid ${isIn?`${col}40`:"transparent"}`,
@@ -899,12 +968,33 @@
                             </div>
                             {isIn ? (
                               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                                {share!==null && <span style={{ fontSize:13, fontWeight:700, color:"#aaa", minWidth:48, textAlign:"right" }}>${share.toFixed(2)}</span>}
-                                <div className="serving-ctrl">
-                                  <button className="serving-btn" onClick={e=>{e.stopPropagation();setServings(name,srv-1);}}>−</button>
-                                  <span className="serving-val">{srv}</span>
-                                  <button className="serving-btn" onClick={e=>{e.stopPropagation();setServings(name,srv+1);}}>+</button>
-                                </div>
+                                {splitMode==='servings' ? (
+                                  <>
+                                    {share!==null && <span style={{ fontSize:13, fontWeight:700, color:"#aaa", minWidth:48, textAlign:"right" }}>${share.toFixed(2)}</span>}
+                                    <div className="serving-ctrl">
+                                      <button className="serving-btn" onClick={e=>{e.stopPropagation();setServings(name,srv-1);}}>−</button>
+                                      <span className="serving-val">{srv}</span>
+                                      <button className="serving-btn" onClick={e=>{e.stopPropagation();setServings(name,srv+1);}}>+</button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                                    <span style={{ color:"#888", fontSize:14 }}>$</span>
+                                    <input
+                                      type="number" inputMode="decimal" min="0" step="0.01"
+                                      value={srv===0?"":srv}
+                                      placeholder="0.00"
+                                      onClick={e=>e.stopPropagation()}
+                                      onChange={e=>{
+                                        const v = parseFloat(e.target.value)||0;
+                                        setForm(f=>({...f, splits:{...f.splits,[name]:v}}));
+                                      }}
+                                      style={{ width:70, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)",
+                                        borderRadius:8, padding:"5px 8px", color:"#fff", fontSize:14,
+                                        fontFamily:"inherit", outline:"none", textAlign:"right" }}
+                                    />
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <span style={{ fontSize:12, color:"#3a3a4a" }}>tap to add</span>
@@ -918,21 +1008,30 @@
                       <div style={{ marginTop:10, padding:"11px 13px", background:"rgba(255,255,255,0.03)", borderRadius:11, border:"1px solid rgba(255,255,255,0.07)" }}>
                         <div style={{ fontSize:10, color:"#555", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:7 }}>Breakdown</div>
                         {Object.entries(form.splits).map(([name,srv])=>{
-                          const share = (srv/totalSrv)*formAmt;
+                          const share = splitMode==='servings' ? (srv/totalSrv)*formAmt : srv;
                           const col   = getColor(name, friends);
                           return (
                             <div key={name} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 0" }}>
                               <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                                 <Avatar name={name} friends={friends} size={16}/>
                                 <span style={{ fontSize:13, color:"#ccc" }}>{name}</span>
-                                <span style={{ fontSize:10, color:"#555", background:`${col}18`, padding:"1px 5px", borderRadius:6 }}>×{srv}</span>
+                                {splitMode==='servings' && <span style={{ fontSize:10, color:"#555", background:`${col}18`, padding:"1px 5px", borderRadius:6 }}>×{srv}</span>}
                               </div>
                               <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>${share.toFixed(2)}</span>
                             </div>
                           );
                         })}
                         <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:7, paddingTop:7, display:"flex", justifyContent:"space-between" }}>
-                          <span style={{ fontSize:11, color:"#555" }}>{totalSrv} servings</span>
+                          {splitMode==='servings'
+                            ? <span style={{ fontSize:11, color:"#555" }}>{totalSrv} servings</span>
+                            : (() => {
+                                const customTotal = Object.values(form.splits).reduce((a,b)=>a+b,0);
+                                const diff = formAmt - customTotal;
+                                return <span style={{ fontSize:11, color: Math.abs(diff)>0.01?"#FF6B6B":"#4ECDC4" }}>
+                                  {Math.abs(diff)<0.01 ? "✓ Balanced" : diff>0 ? `$${diff.toFixed(2)} unassigned` : `$${Math.abs(diff).toFixed(2)} over`}
+                                </span>;
+                              })()
+                          }
                           <span style={{ fontSize:13, fontWeight:800, color:"#FF6B6B" }}>${formAmt.toFixed(2)}</span>
                         </div>
                       </div>
