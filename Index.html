@@ -35,40 +35,26 @@
       border-radius: 10px;
     }
 
-    /* ── Top header ── */
     #top-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
+      position: sticky; top: 0; z-index: 40;
       background: #0f0f1a;
       border-bottom: 1px solid rgba(255,255,255,0.07);
       padding: 12px 16px 10px;
       padding-top: calc(12px + env(safe-area-inset-top, 0px));
     }
 
-    /* ── Bottom nav ── */
     #bottom-nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 40;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
       background: #13131f;
       border-top: 1px solid rgba(255,255,255,0.08);
       display: flex;
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     #bottom-nav button {
-      flex: 1;
-      background: none;
-      border: none;
-      cursor: pointer;
+      flex: 1; background: none; border: none; cursor: pointer;
       padding: 10px 4px 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      color: #555;
-      transition: color 0.18s;
-      position: relative;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: #555; transition: color 0.18s; position: relative;
       -webkit-tap-highlight-color: transparent;
     }
     #bottom-nav button.active { color: #FF6B6B; }
@@ -83,21 +69,14 @@
       padding: 0 3px;
     }
 
-    /* ── FAB ── */
     #fab {
-      position: fixed;
-      right: 18px;
+      position: fixed; right: 18px;
       bottom: calc(72px + env(safe-area-inset-bottom, 0px));
       z-index: 39;
-      width: 54px; height: 54px;
-      border-radius: 50%;
+      width: 54px; height: 54px; border-radius: 50%;
       background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-      border: none;
-      color: #fff;
-      font-size: 28px;
-      line-height: 1;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(255,107,107,0.45);
+      border: none; color: #fff; font-size: 28px; line-height: 1;
+      cursor: pointer; box-shadow: 0 4px 18px rgba(255,107,107,0.45);
       display: flex; align-items: center; justify-content: center;
       transition: transform 0.15s, opacity 0.15s;
       -webkit-tap-highlight-color: transparent;
@@ -105,28 +84,18 @@
     #fab:active { transform: scale(0.93); }
     #fab:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* ── Content area ── */
-    #content {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 14px 16px 100px;
-    }
+    #content { max-width: 680px; margin: 0 auto; padding: 14px 16px 100px; }
 
-    /* ── Cards ── */
     .card {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 14px;
-      transition: background 0.2s;
+      border-radius: 14px; padding: 14px; transition: background 0.2s;
     }
 
-    /* ── Buttons ── */
     .btn {
       border: none; cursor: pointer; border-radius: 12px;
       font-weight: 600; font-size: 14px; padding: 10px 18px;
-      transition: opacity 0.15s, transform 0.15s;
-      font-family: inherit;
+      transition: opacity 0.15s, transform 0.15s; font-family: inherit;
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
       -webkit-tap-highlight-color: transparent;
     }
@@ -135,41 +104,31 @@
     .btn-primary { background: linear-gradient(135deg,#FF6B6B,#FF8E8E); color:#fff; }
     .btn-ghost   { background: rgba(255,255,255,0.08); color:#ccc; }
     .btn-danger  { background: rgba(255,80,80,0.14); color:#ff6b6b; }
+    .btn-teal    { background: rgba(78,205,196,0.15); color:#4ECDC4; }
 
-    /* ── Inputs ── */
     .input {
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 10px; padding: 11px 14px;
-      color: #e8e8f0; font-size: 16px; /* 16px prevents iOS zoom */
+      color: #e8e8f0; font-size: 16px;
       font-family: inherit; width: 100%; outline: none;
-      transition: border-color 0.18s;
-      -webkit-appearance: none;
+      transition: border-color 0.18s; -webkit-appearance: none;
     }
     .input:focus { border-color: rgba(255,107,107,0.55); }
     select.input option { background: #1a1a2e; }
 
-    /* ── Modal ── */
     .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      display: flex; align-items: flex-end; justify-content: center;
-      padding: 0;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 100; display: flex; align-items: flex-end; justify-content: center;
     }
     .modal {
-      background: #161628;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 22px 22px 0 0;
-      padding: 22px 20px;
+      background: #161628; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 22px 22px 0 0; padding: 22px 20px;
       padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
-      width: 100%; max-width: 540px;
-      max-height: 92vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      width: 100%; max-width: 540px; max-height: 92vh;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
 
-    /* ── Misc ── */
     .label {
       font-size: 11px; font-weight: 700; color: #777;
       text-transform: uppercase; letter-spacing: 0.07em;
@@ -186,10 +145,10 @@
       position: absolute; width: 16px; height: 16px;
       border-radius: 50%; background: #fff;
       top: 3px; left: 3px; transition: left 0.2s;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-      pointer-events: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3); pointer-events: none;
     }
     .toggle.on .toggle-thumb { left: 21px; }
+
     .serving-badge {
       font-size: 10px; font-weight: 700; padding: 2px 7px;
       border-radius: 10px; background: rgba(255,230,109,0.15); color: #FFE66D;
@@ -201,11 +160,11 @@
     .serving-btn {
       background: none; border: none; color: #ccc; font-size: 18px;
       width: 34px; height: 34px; cursor: pointer; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      font-family: inherit;
+      display: flex; align-items: center; justify-content: center; font-family: inherit;
     }
     .serving-btn:active { background: rgba(255,255,255,0.12); }
     .serving-val { font-size: 14px; font-weight: 700; color: #fff; min-width: 28px; text-align: center; }
+
     .error-banner {
       margin: 0 0 12px; padding: 10px 14px;
       background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3);
@@ -219,28 +178,39 @@
       border: 1px solid rgba(255,255,255,0.08);
       background: rgba(255,255,255,0.04);
     }
-    .agenda-item.discussed {
-      background: rgba(78,205,196,0.04);
-      border-color: rgba(78,205,196,0.12);
-    }
+    .agenda-item.discussed { background: rgba(78,205,196,0.04); border-color: rgba(78,205,196,0.12); }
     .agenda-check {
       width: 22px; height: 22px; border-radius: 50%;
       border: 2px solid #444; background: transparent;
       cursor: pointer; flex-shrink: 0; margin-top: 1px;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.18s;
+      display: flex; align-items: center; justify-content: center; transition: all 0.18s;
     }
     .agenda-check.on { background: #4ECDC4; border-color: #4ECDC4; }
+
+    .notif-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 14px; border-radius: 13px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+      transition: background 0.15s;
+    }
+    .notif-item.unread { background: rgba(255,107,107,0.06); border-color: rgba(255,107,107,0.15); }
+
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-
   <script type="text/babel">
-    const { useState, useEffect, useCallback } = React;
+    const { useState, useEffect, useCallback, useRef } = React;
 
-    const SUPABASE_URL = "https://tqkimzplwikftvkkogih.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxa2ltenBsd2lrZnR2a2tvZ2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNzQzNjMsImV4cCI6MjA4Njk1MDM2M30.BInx6X4wqrL3ZeytYG9PSsKqGNl7WRCgNn6RPZt90OY";
+    // ── Config ────────────────────────────────────────────────────────────────
+    const SUPABASE_URL  = "https://tqkimzplwikftvkkogih.supabase.co";
+    const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxa2ltenBsd2lrZnR2a2tvZ2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNzQzNjMsImV4cCI6MjA4Njk1MDM2M30.BInx6X4wqrL3ZeytYG9PSsKqGNl7WRCgNn6RPZt90OY";
+    const EDGE_FN_URL   = `${SUPABASE_URL}/functions/v1/notify-expense`;
+    const VAPID_PUBLIC  = "BHnCTgsVELN5tcxu5vS3eFOt2rNyYIqWeCF1q-K7LatS5n6qezBmDm184CItNWzsew2wTNfHg95ELf6gYT9nTtU";
+
     const BASE_HDR = {
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`,
@@ -256,9 +226,72 @@
       return t ? JSON.parse(t) : null;
     }
 
+    // ── Push helpers ──────────────────────────────────────────────────────────
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const raw     = window.atob(base64);
+      return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+    }
+
+    async function registerPush(friendName) {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+      const reg  = await navigator.serviceWorker.ready;
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return null;
+      const sub  = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+      });
+      const j = sub.toJSON();
+      await sbFetch("/push_subscriptions", {
+        method: "POST",
+        extraHeaders: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify({
+          friend_name: friendName,
+          endpoint:    j.endpoint,
+          p256dh:      j.keys.p256dh,
+          auth:        j.keys.auth,
+        }),
+      });
+      return sub;
+    }
+
+    async function unregisterPush() {
+      if (!('serviceWorker' in navigator)) return;
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await sbFetch(`/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
+          method: "DELETE", extraHeaders: { Prefer: "" },
+        });
+        await sub.unsubscribe();
+      }
+    }
+
+    async function getPushSub() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        return await reg.pushManager.getSubscription();
+      } catch { return null; }
+    }
+
+    async function triggerNotify(type, record, actor) {
+      try {
+        await fetch(EDGE_FN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_KEY}` },
+          body: JSON.stringify({ type, record, actor }),
+        });
+      } catch (e) { console.warn("notify failed", e); }
+    }
+
+    // ── Constants ─────────────────────────────────────────────────────────────
     const COLORS = ["#FF6B6B","#4ECDC4","#FFE66D","#A8E6CF","#FF8B94","#B8B8FF"];
     const getColor = (name, friends) => COLORS[Math.max(0, friends.indexOf(name)) % COLORS.length];
 
+    // ── Sub-components ────────────────────────────────────────────────────────
     function Avatar({ name, friends, size = 36 }) {
       const c = getColor(name, friends);
       return (
@@ -276,9 +309,10 @@
         borderTopColor:"#FF6B6B", borderRadius:"50%", animation:"spin 0.7s linear infinite", display:"inline-block" }} />;
     }
 
+    // ── Math ──────────────────────────────────────────────────────────────────
     function getShare(amount, splits, person) {
       const total = Object.values(splits).reduce((a,b)=>a+b, 0);
-      if (!total || !splits[person]) return 0;
+      if (!total || splits[person]==null) return 0;
       return (splits[person] / total) * amount;
     }
 
@@ -334,28 +368,50 @@
       return txns;
     }
 
+    // ── App ───────────────────────────────────────────────────────────────────
     function App() {
-      const [friends,     setFriends]     = useState([]);
-      const [expenses,    setExpenses]    = useState([]);
-      const [agendaItems, setAgendaItems] = useState([]);
-      const [tab,         setTab]         = useState("expenses");
-      const [simplified,  setSimplified]  = useState(true);
-      const [loading,     setLoading]     = useState(true);
-      const [saving,      setSaving]      = useState(false);
-      const [error,       setError]       = useState(null);
-      const [showExpense, setShowExpense] = useState(false);
-      const [editingExpense, setEditingExpense] = useState(null);
-      const [expandedExpenses, setExpandedExpenses] = useState(new Set());
-      const [splitMode, setSplitMode] = useState('servings'); // 'servings' | 'custom'
-      const [showFriend,  setShowFriend]  = useState(false);
-      const [newFriend,   setNewFriend]   = useState("");
-      const [newTopic,    setNewTopic]    = useState("");
-      const [addedBy,     setAddedBy]     = useState("");
-      const [form, setForm] = useState({ description:"", amount:"", paid_by:"", splits:{} });
-      const [myName, setMyName] = useState(() => localStorage.getItem("bbw_myname") || "");
+      const [friends,          setFriends]          = useState([]);
+      const [expenses,         setExpenses]          = useState([]);
+      const [agendaItems,      setAgendaItems]       = useState([]);
+      const [notifications,    setNotifications]     = useState([]);
+      const [tab,              setTab]               = useState("expenses");
+      const [simplified,       setSimplified]        = useState(true);
+      const [loading,          setLoading]           = useState(true);
+      const [saving,           setSaving]            = useState(false);
+      const [error,            setError]             = useState(null);
+      const [showExpense,      setShowExpense]       = useState(false);
+      const [editingExpense,   setEditingExpense]    = useState(null);
+      const [expandedExpenses, setExpandedExpenses]  = useState(new Set());
+      const [splitMode,        setSplitMode]         = useState("servings");
+      const [showFriend,       setShowFriend]        = useState(false);
+      const [newFriend,        setNewFriend]         = useState("");
+      const [newTopic,         setNewTopic]          = useState("");
+      const [addedBy,          setAddedBy]           = useState("");
+      const [form,             setForm]              = useState({ description:"", amount:"", paid_by:"", splits:{} });
+      const [myName,           setMyName]            = useState(() => localStorage.getItem("bbw_myname") || "");
+      const [pushSub,          setPushSub]           = useState(null);
+      const [pushLoading,      setPushLoading]       = useState(false);
+      const [swReady,          setSwReady]           = useState(false);
 
-      useEffect(() => { if (myName) localStorage.setItem("bbw_myname", myName); else localStorage.removeItem("bbw_myname"); }, [myName]);
+      // Persist myName
+      useEffect(() => {
+        if (myName) localStorage.setItem("bbw_myname", myName);
+        else localStorage.removeItem("bbw_myname");
+      }, [myName]);
 
+      // Register service worker
+      useEffect(() => {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("sw.js")
+            .then(() => {
+              setSwReady(true);
+              getPushSub().then(s => setPushSub(s));
+            })
+            .catch(e => console.warn("SW registration failed:", e));
+        }
+      }, []);
+
+      // Load data
       const loadData = useCallback(async () => {
         setLoading(true); setError(null);
         try {
@@ -377,6 +433,20 @@
 
       useEffect(()=>{ loadData(); }, [loadData]);
 
+      // Load notifications when on notifications tab
+      const loadNotifications = useCallback(async () => {
+        if (!myName) return;
+        try {
+          const rows = await sbFetch(`/notifications?recipient=eq.${encodeURIComponent(myName)}&order=created_at.desc&limit=50`);
+          setNotifications(rows || []);
+        } catch(e) { console.warn("notif load failed", e); }
+      }, [myName]);
+
+      useEffect(() => {
+        if (tab === "notifications") loadNotifications();
+      }, [tab, loadNotifications]);
+
+      // ── CRUD ────────────────────────────────────────────────────────────────
       async function addFriend() {
         const name = newFriend.trim();
         if (!name || friends.includes(name)) return;
@@ -394,11 +464,37 @@
         if (isNaN(amt)||amt<=0) return;
         setSaving(true);
         try {
-          const [row] = await sbFetch("/expenses", { method:"POST", body:JSON.stringify({ description:form.description, amount:amt, paid_by:form.paid_by, date:new Date().toISOString().split("T")[0] }) });
-          await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:row.id, person_name, servings }))) });
+          const [row] = await sbFetch("/expenses", { method:"POST", body:JSON.stringify({
+            description:form.description, amount:amt, paid_by:form.paid_by,
+            date:new Date().toISOString().split("T")[0]
+          })});
+          await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(
+            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:row.id, person_name, servings:parseFloat(servings)||0 }))
+          )});
           setExpenses(p=>[{...row, amount:parseFloat(row.amount), splits:{...form.splits}}, ...p]);
-          setForm({description:"", amount:"", paid_by:"", splits:{}});
+          setForm({description:"",amount:"",paid_by:"",splits:{}});
           setShowExpense(false);
+          triggerNotify("expense_added", row, myName || form.paid_by);
+        } catch(e) { setError(e.message); } finally { setSaving(false); }
+      }
+
+      async function updateExpense() {
+        if (!form.description||!form.amount||!form.paid_by||!Object.keys(form.splits).length) return;
+        const amt = parseFloat(form.amount);
+        if (isNaN(amt)||amt<=0) return;
+        setSaving(true);
+        try {
+          await sbFetch(`/expenses?id=eq.${editingExpense}`, { method:"PATCH",
+            body:JSON.stringify({ description:form.description, amount:amt, paid_by:form.paid_by }) });
+          await sbFetch(`/expense_splits?expense_id=eq.${editingExpense}`, { method:"DELETE", extraHeaders:{Prefer:""} });
+          await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(
+            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:editingExpense, person_name, servings:parseFloat(servings)||0 }))
+          )});
+          setExpenses(p=>p.map(e=>e.id===editingExpense
+            ? {...e, description:form.description, amount:amt, paid_by:form.paid_by, splits:{...form.splits}} : e));
+          triggerNotify("expense_edited", { description:form.description, amount:amt }, myName || form.paid_by);
+          setEditingExpense(null); setShowExpense(false);
+          setForm({description:"",amount:"",paid_by:"",splits:{}});
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
@@ -410,38 +506,10 @@
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
-      async function updateExpense() {
-        if (!form.description||!form.amount||!form.paid_by||!Object.keys(form.splits).length) return;
-        const amt = parseFloat(form.amount);
-        if (isNaN(amt)||amt<=0) return;
-        setSaving(true);
-        try {
-          // Update expense row
-          await sbFetch(`/expenses?id=eq.${editingExpense}`, {
-            method:"PATCH",
-            body:JSON.stringify({ description:form.description, amount:amt, paid_by:form.paid_by }),
-          });
-          // Replace all splits: delete existing then re-insert
-          await sbFetch(`/expense_splits?expense_id=eq.${editingExpense}`, { method:"DELETE", extraHeaders:{Prefer:""} });
-          await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(
-            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:editingExpense, person_name, servings }))
-          )});
-          // Update local state
-          setExpenses(p=>p.map(e=>e.id===editingExpense
-            ? {...e, description:form.description, amount:amt, paid_by:form.paid_by, splits:{...form.splits}}
-            : e
-          ));
-          setEditingExpense(null);
-          setShowExpense(false);
-          setForm({description:"",amount:"",paid_by:"",splits:{}});
-        } catch(e) { setError(e.message); } finally { setSaving(false); }
-      }
-
       function openEdit(exp) {
-        // Detect if this expense used custom amounts (values > 99 indicate stored as cents*100 or raw $, we use >2 threshold: servings are small integers)
         const vals = Object.values(exp.splits);
         const isCustom = vals.some(v => v > 99 || !Number.isInteger(v));
-        setSplitMode(isCustom ? 'custom' : 'servings');
+        setSplitMode(isCustom ? "custom" : "servings");
         setForm({ description:exp.description, amount:String(exp.amount), paid_by:exp.paid_by, splits:{...exp.splits} });
         setEditingExpense(exp.id);
         setShowExpense(true);
@@ -457,6 +525,7 @@
           const [row] = await sbFetch("/agenda_items", { method:"POST", body:JSON.stringify(body) });
           setAgendaItems(p=>[...p, row]);
           setNewTopic(""); setAddedBy("");
+          triggerNotify("agenda_added", row, myName || addedBy || "Someone");
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
@@ -477,6 +546,45 @@
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
+      async function markAllRead() {
+        if (!myName) return;
+        try {
+          await sbFetch(`/notifications?recipient=eq.${encodeURIComponent(myName)}&read=eq.false`, {
+            method:"PATCH", body:JSON.stringify({read:true})
+          });
+          setNotifications(p=>p.map(n=>({...n,read:true})));
+        } catch(e) { console.warn(e); }
+      }
+
+      // ── Push subscription toggle ──────────────────────────────────────────
+      async function togglePush() {
+        if (!myName) { setError("Select your name in Settings first"); return; }
+        setPushLoading(true);
+        try {
+          if (pushSub) {
+            await unregisterPush();
+            setPushSub(null);
+          } else {
+            const sub = await registerPush(myName);
+            setPushSub(sub);
+            if (!sub) setError("Notifications permission denied");
+          }
+        } catch(e) { setError(e.message); }
+        finally { setPushLoading(false); }
+      }
+
+      // ── Form helpers ──────────────────────────────────────────────────────
+      function togglePerson(name) {
+        setForm(prev => {
+          const splits = {...prev.splits};
+          if (splits[name]!==undefined) delete splits[name]; else splits[name]=splitMode==='servings'?2:0;
+          return {...prev, splits};
+        });
+      }
+      function setServings(name, val) {
+        const v = Math.max(1, Math.min(99, val));
+        setForm(p=>({...p, splits:{...p.splits, [name]:v}}));
+      }
       function toggleExpand(id) {
         setExpandedExpenses(prev => {
           const next = new Set(prev);
@@ -485,34 +593,24 @@
         });
       }
 
-      function togglePerson(name) {
-        setForm(prev => {
-          if (name === prev.paid_by) return prev;
-          const splits = {...prev.splits};
-          if (splits[name]!==undefined) delete splits[name]; else splits[name]=2;
-          return {...prev, splits};
-        });
-      }
-      function setServings(name, val) {
-        const v = Math.max(1, Math.min(99, val));
-        setForm(p=>({...p, splits:{...p.splits, [name]:v}}));
-      }
-
-      const balances   = computeBalances(expenses, friends);
-      const rawDebts   = computeRawDebts(expenses);
-      const simpDebts  = simplifyDebts(expenses, friends);
-      const settle     = simplified ? simpDebts : rawDebts;
-      const totalExp   = expenses.reduce((s,e)=>s+e.amount, 0);
-      const totalSrv   = Object.values(form.splits).reduce((a,b)=>a+b, 0);
-      const formAmt    = parseFloat(form.amount)||0;
-      const pending    = agendaItems.filter(a=>a.status==="pending").length;
+      // ── Derived ───────────────────────────────────────────────────────────
+      const balances  = computeBalances(expenses, friends);
+      const rawDebts  = computeRawDebts(expenses);
+      const simpDebts = simplifyDebts(expenses, friends);
+      const settle    = simplified ? simpDebts : rawDebts;
+      const totalExp  = expenses.reduce((s,e)=>s+e.amount, 0);
+      const totalSrv  = Object.values(form.splits).reduce((a,b)=>a+b, 0);
+      const formAmt   = parseFloat(form.amount)||0;
+      const pending   = agendaItems.filter(a=>a.status==="pending").length;
+      const unreadCount = myName ? notifications.filter(n=>!n.read).length : 0;
 
       const TABS = [
-        {id:"expenses", icon:"💳", label:"Expenses"},
-        {id:"balances", icon:"⚖️",  label:"Balances"},
-        {id:"settle",   icon:"🤝",  label:"Settle"},
-        {id:"agenda",   icon:"📋",  label:"Agenda"},
-        {id:"settings", icon:"⚙️",  label:"Settings"},
+        {id:"expenses",      icon:"💳", label:"Expenses"},
+        {id:"balances",      icon:"⚖️",  label:"Balances"},
+        {id:"settle",        icon:"🤝",  label:"Settle"},
+        {id:"agenda",        icon:"📋",  label:"Agenda"},
+        {id:"notifications", icon:"🔔",  label:"Alerts"},
+        {id:"settings",      icon:"⚙️",  label:"Settings"},
       ];
 
       return (
@@ -531,12 +629,9 @@
                   {!loading && <span style={{ fontSize:12, color:"#555" }}>${totalExp.toFixed(0)} total</span>}
                 </div>
               </div>
-
-              {/* Avatar strip */}
               {loading
                 ? <div style={{ display:"flex", gap:12 }}>{[1,2,3].map(i=><div key={i} className="skeleton" style={{ width:32, height:32, borderRadius:"50%", flexShrink:0 }}/>)}</div>
-                : <div style={{ display:"flex", gap:14, overflowX:"auto", paddingBottom:2, WebkitOverflowScrolling:"touch" }}
-                    className="hide-scroll">
+                : <div style={{ display:"flex", gap:14, overflowX:"auto", paddingBottom:2 }} className="hide-scroll">
                     {friends.map(f=>{
                       const bal = balances[f]||0;
                       return (
@@ -567,10 +662,10 @@
 
             <div className="fade-in" key={tab}>
 
-              {/* EXPENSES */}
+              {/* ── EXPENSES ── */}
               {tab==="expenses" && (
                 <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                  {loading && [1,2,3].map(i=><div key={i} className="skeleton" style={{ height:100, borderRadius:14 }}/>)}
+                  {loading && [1,2,3].map(i=><div key={i} className="skeleton" style={{ height:68, borderRadius:14 }}/>)}
                   {!loading && expenses.length===0 && (
                     <div style={{ textAlign:"center", color:"#555", padding:"60px 0" }}>
                       <div style={{ fontSize:36, marginBottom:10 }}>🍽</div>
@@ -579,13 +674,11 @@
                     </div>
                   )}
                   {expenses.map(exp=>{
-                    const people  = Object.keys(exp.splits);
-                    const totSrv  = Object.values(exp.splits).reduce((a,b)=>a+b,0);
-                    const isCustomAmounts = totSrv > people.length * 99;
+                    const people   = Object.keys(exp.splits);
+                    const totSrv   = Object.values(exp.splits).reduce((a,b)=>a+b,0);
                     const expanded = expandedExpenses.has(exp.id);
                     return (
                       <div key={exp.id} className="card" style={{ padding:0, overflow:"hidden" }}>
-                        {/* ── Collapsed header (always visible) ── */}
                         <div onClick={()=>toggleExpand(exp.id)}
                           style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px", cursor:"pointer", userSelect:"none" }}>
                           <div style={{ flex:1, minWidth:0 }}>
@@ -597,17 +690,16 @@
                               <Avatar name={exp.paid_by} friends={friends} size={14}/>
                               <span style={{ fontSize:12, color:"#888" }}>{exp.paid_by}</span>
                               <span style={{ fontSize:12, color:"#444" }}>·</span>
-                              <div style={{ display:"flex", gap:4 }}>
+                              <div style={{ display:"flex", gap:3 }}>
                                 {people.map(p=><Avatar key={p} name={p} friends={friends} size={14}/>)}
                               </div>
                               <span style={{ fontSize:12, color:"#444" }}>·</span>
                               <span style={{ fontSize:12, color:"#555" }}>{exp.date}</span>
                             </div>
                           </div>
-                          <span style={{ fontSize:14, color:"#444", flexShrink:0, transition:"transform 0.2s", display:"inline-block", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+                          <span style={{ fontSize:14, color:"#444", flexShrink:0, display:"inline-block",
+                            transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
                         </div>
-
-                        {/* ── Expanded detail ── */}
                         {expanded && (
                           <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", padding:"12px 14px 14px" }}>
                             <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:12 }}>
@@ -619,12 +711,9 @@
                                   <div key={p} style={{ display:"flex", alignItems:"center", gap:8 }}>
                                     <Avatar name={p} friends={friends} size={18}/>
                                     <span style={{ fontSize:12, color:"#bbb", minWidth:50 }}>{p}</span>
-                                    {!isCustomAmounts && (
-                                      <div style={{ flex:1, height:4, background:"rgba(255,255,255,0.05)", borderRadius:2, overflow:"hidden" }}>
-                                        <div style={{ height:"100%", width:`${pct}%`, background:col, borderRadius:2 }}/>
-                                      </div>
-                                    )}
-                                    {isCustomAmounts && <div style={{ flex:1 }}/>}
+                                    <div style={{ flex:1, height:4, background:"rgba(255,255,255,0.05)", borderRadius:2, overflow:"hidden" }}>
+                                      <div style={{ height:"100%", width:`${pct}%`, background:col, borderRadius:2 }}/>
+                                    </div>
                                     <span style={{ fontSize:12, fontWeight:700, color:"#fff", minWidth:50, textAlign:"right" }}>${share.toFixed(2)}</span>
                                   </div>
                                 );
@@ -644,7 +733,7 @@
                 </div>
               )}
 
-              {/* BALANCES */}
+              {/* ── BALANCES ── */}
               {tab==="balances" && (
                 <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                   {loading && [1,2,3].map(i=><div key={i} className="skeleton" style={{ height:80, borderRadius:14 }}/>)}
@@ -678,7 +767,7 @@
                 </div>
               )}
 
-              {/* SETTLE */}
+              {/* ── SETTLE ── */}
               {tab==="settle" && (
                 <div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
@@ -698,11 +787,6 @@
                       </button>
                     </div>
                   </div>
-                  {!simplified && rawDebts.length>simpDebts.length && (
-                    <div style={{ marginBottom:12, padding:"10px 14px", background:"rgba(255,230,109,0.07)", border:"1px solid rgba(255,230,109,0.15)", borderRadius:12, fontSize:13, color:"#FFE66D" }}>
-                      💡 Toggle Simplify to cut {rawDebts.length} → {simpDebts.length} transactions
-                    </div>
-                  )}
                   {loading && [1,2].map(i=><div key={i} className="skeleton" style={{ height:64, borderRadius:14, marginBottom:8 }}/>)}
                   {!loading && settle.length===0 && <div style={{ textAlign:"center", color:"#555", padding:"40px 0", fontSize:15 }}>🎉 Everyone is settled up!</div>}
                   <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -725,7 +809,7 @@
                 </div>
               )}
 
-              {/* AGENDA */}
+              {/* ── AGENDA ── */}
               {tab==="agenda" && (
                 <div>
                   <div style={{ marginBottom:16, padding:"14px 16px", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14 }}>
@@ -745,7 +829,6 @@
                       </div>
                     </div>
                   </div>
-
                   {!loading && agendaItems.length>0 && (
                     <div style={{ display:"flex", gap:8, marginBottom:14 }}>
                       {[["pending","#FF6B6B",pending],["discussed","#4ECDC4",agendaItems.length-pending],["total","#777",agendaItems.length]].map(([label,color,count])=>(
@@ -756,7 +839,6 @@
                       ))}
                     </div>
                   )}
-
                   {loading && [1,2,3].map(i=><div key={i} className="skeleton" style={{ height:60, borderRadius:13, marginBottom:8 }}/>)}
                   {!loading && agendaItems.length===0 && (
                     <div style={{ textAlign:"center", color:"#555", padding:"60px 0" }}>
@@ -764,7 +846,6 @@
                       <div style={{ fontWeight:600, color:"#666" }}>No topics yet</div>
                     </div>
                   )}
-
                   {[["pending","To Discuss"],["discussed","Discussed ✓"]].map(([status, heading])=>{
                     const items = agendaItems.filter(a=>a.status===status);
                     if (!items.length) return null;
@@ -778,7 +859,8 @@
                                 {status==="discussed" && <span style={{ color:"#0f0f1a", fontSize:12, fontWeight:900 }}>✓</span>}
                               </button>
                               <div style={{ flex:1, minWidth:0 }}>
-                                <div style={{ fontSize:14, fontWeight:500, color:status==="discussed"?"#555":"#e8e8f0", textDecoration:status==="discussed"?"line-through":"none", lineHeight:1.4 }}>{item.topic}</div>
+                                <div style={{ fontSize:14, fontWeight:500, color:status==="discussed"?"#555":"#e8e8f0",
+                                  textDecoration:status==="discussed"?"line-through":"none", lineHeight:1.4 }}>{item.topic}</div>
                                 {item.added_by && (
                                   <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4 }}>
                                     <Avatar name={item.added_by} friends={friends} size={14}/>
@@ -797,45 +879,122 @@
                 </div>
               )}
 
-              {/* SETTINGS */}
+              {/* ── NOTIFICATIONS ── */}
+              {tab==="notifications" && (
+                <div>
+                  {!myName ? (
+                    <div style={{ textAlign:"center", color:"#555", padding:"60px 0" }}>
+                      <div style={{ fontSize:36, marginBottom:10 }}>🔔</div>
+                      <div style={{ fontWeight:600, color:"#666" }}>Select your name in Settings</div>
+                      <div style={{ fontSize:13, color:"#444", marginTop:4 }}>So we know whose notifications to show you</div>
+                      <button className="btn btn-ghost" style={{ marginTop:16 }} onClick={()=>setTab("settings")}>Go to Settings</button>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                        <div style={{ fontWeight:700, color:"#fff" }}>Notifications for {myName}</div>
+                        {notifications.some(n=>!n.read) && (
+                          <button className="btn btn-ghost" style={{ fontSize:12, padding:"5px 11px" }} onClick={markAllRead}>Mark all read</button>
+                        )}
+                      </div>
+                      {notifications.length===0 && (
+                        <div style={{ textAlign:"center", color:"#555", padding:"60px 0" }}>
+                          <div style={{ fontSize:36, marginBottom:10 }}>✅</div>
+                          <div style={{ fontWeight:600, color:"#666" }}>All caught up!</div>
+                        </div>
+                      )}
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {notifications.map(n=>(
+                          <div key={n.id} className={`notif-item${n.read?"":" unread"}`}>
+                            <div style={{ fontSize:22, flexShrink:0, lineHeight:1 }}>
+                              {n.type==="expense"?"💳":n.type==="agenda"?"📋":"🤝"}
+                            </div>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <div style={{ fontWeight:600, fontSize:14, color:"#fff" }}>{n.title}</div>
+                              <div style={{ fontSize:13, color:"#888", marginTop:2, lineHeight:1.4 }}>{n.body}</div>
+                              <div style={{ fontSize:11, color:"#444", marginTop:4 }}>
+                                {new Date(n.created_at).toLocaleString()}
+                              </div>
+                            </div>
+                            {!n.read && <div style={{ width:8, height:8, borderRadius:"50%", background:"#FF6B6B", flexShrink:0, marginTop:6 }}/>}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── SETTINGS ── */}
               {tab==="settings" && (
                 <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+
+                  {/* Who are you */}
                   <div className="card">
                     <div style={{ marginBottom:14 }}>
                       <div style={{ fontSize:16, fontWeight:700, color:"#fff", marginBottom:4 }}>Who are you?</div>
-                      <div style={{ fontSize:13, color:"#666" }}>Pick your name so expenses are pre-filled with you as the payer.</div>
+                      <div style={{ fontSize:13, color:"#666" }}>Pick your name so expenses are pre-filled and notifications are personalised.</div>
                     </div>
                     <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                       {friends.map(f => {
                         const isMe = myName === f;
                         const col  = getColor(f, friends);
                         return (
-                          <button key={f} onClick={() => setMyName(isMe ? "" : f)} style={{
+                          <button key={f} onClick={()=>setMyName(isMe?"":f)} style={{
                             display:"flex", alignItems:"center", gap:12,
-                            padding:"12px 14px", borderRadius:12,
-                            border:`2px solid ${isMe ? col : "rgba(255,255,255,0.08)"}`,
-                            background: isMe ? `${col}15` : "rgba(255,255,255,0.03)",
-                            cursor:"pointer", transition:"all 0.18s", textAlign:"left", width:"100%",
+                            padding:"12px 14px", borderRadius:12, width:"100%",
+                            border:`2px solid ${isMe?col:"rgba(255,255,255,0.08)"}`,
+                            background:isMe?`${col}15`:"rgba(255,255,255,0.03)",
+                            cursor:"pointer", transition:"all 0.18s",
                           }}>
-                            <Avatar name={f} friends={friends} size={36} />
-                            <span style={{ fontWeight:600, fontSize:15, color: isMe ? "#fff" : "#aaa", flex:1 }}>{f}</span>
+                            <Avatar name={f} friends={friends} size={36}/>
+                            <span style={{ fontWeight:600, fontSize:15, color:isMe?"#fff":"#aaa", flex:1, textAlign:"left" }}>{f}</span>
                             {isMe && <span style={{ fontSize:12, fontWeight:700, color:col, background:`${col}20`, padding:"3px 10px", borderRadius:20 }}>That's me ✓</span>}
                           </button>
                         );
                       })}
-                      {friends.length === 0 && <div style={{ color:"#555", fontSize:13 }}>No friends added yet.</div>}
+                      {friends.length===0 && <div style={{ color:"#555", fontSize:13 }}>No friends added yet.</div>}
                     </div>
                     {myName && (
-                      <button onClick={() => setMyName("")} style={{ marginTop:14, background:"none", border:"none", color:"#555", cursor:"pointer", fontSize:13, fontFamily:"inherit", textDecoration:"underline" }}>
+                      <button onClick={()=>setMyName("")} style={{ marginTop:14, background:"none", border:"none", color:"#555", cursor:"pointer", fontSize:13, fontFamily:"inherit", textDecoration:"underline" }}>
                         Clear selection
                       </button>
                     )}
                   </div>
+
                   {myName && (
                     <div style={{ padding:"12px 16px", background:"rgba(78,205,196,0.08)", border:"1px solid rgba(78,205,196,0.2)", borderRadius:12, fontSize:13, color:"#4ECDC4" }}>
                       ✓ New expenses will default to <strong>{myName}</strong> as the payer.
                     </div>
                   )}
+
+                  {/* Push notifications */}
+                  <div className="card">
+                    <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
+                      <div>
+                        <div style={{ fontSize:16, fontWeight:700, color:"#fff", marginBottom:4 }}>Push Notifications</div>
+                        <div style={{ fontSize:13, color:"#666", lineHeight:1.5 }}>
+                          Get notified on this device when someone adds or edits an expense.
+                          {!swReady && <span style={{ color:"#FF6B6B" }}> Requires sw.js file alongside the app.</span>}
+                        </div>
+                      </div>
+                      <button
+                        className={`toggle${pushSub?" on":""}`}
+                        onClick={togglePush}
+                        disabled={pushLoading||!swReady||!myName}
+                        style={{ marginTop:4 }}>
+                        <div className="toggle-thumb"/>
+                      </button>
+                    </div>
+                    {pushSub && (
+                      <div style={{ marginTop:12, padding:"8px 12px", background:"rgba(78,205,196,0.08)", borderRadius:10, fontSize:12, color:"#4ECDC4" }}>
+                        🔔 Push notifications enabled for {myName}
+                      </div>
+                    )}
+                    {!myName && (
+                      <div style={{ marginTop:12, fontSize:12, color:"#666" }}>Select your name above to enable notifications.</div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -843,8 +1002,15 @@
           </div>
 
           {/* ── FAB ── */}
-          {tab!=="agenda" && tab!=="settings" && (
-            <button id="fab" onClick={()=>{ const payer = myName && friends.includes(myName) ? myName : ""; setEditingExpense(null); setSplitMode('servings'); setForm({description:"",amount:"",paid_by:payer,splits:Object.fromEntries(friends.map(n=>[n,2]))}); setShowExpense(true); }} disabled={loading||friends.length===0}>+</button>
+          {tab!=="agenda" && tab!=="settings" && tab!=="notifications" && (
+            <button id="fab"
+              onClick={()=>{
+                const payer = myName&&friends.includes(myName)?myName:"";
+                setEditingExpense(null); setSplitMode("servings");
+                setForm({description:"",amount:"",paid_by:payer,splits:Object.fromEntries(friends.map(n=>[n,2]))});
+                setShowExpense(true);
+              }}
+              disabled={loading||friends.length===0}>+</button>
           )}
 
           {/* ── Bottom nav ── */}
@@ -854,15 +1020,18 @@
                 <span className="icon">{t.icon}</span>
                 <span className="label">{t.label}</span>
                 {t.id==="agenda" && pending>0 && <span className="badge">{pending}</span>}
+                {t.id==="notifications" && unreadCount>0 && <span className="badge">{unreadCount}</span>}
               </button>
             ))}
           </div>
 
-          {/* ── Add Expense Modal ── */}
+          {/* ── Add / Edit Expense Modal ── */}
           {showExpense && (
             <div className="modal-overlay" onClick={e=>{ if(e.target===e.currentTarget){ setShowExpense(false); setEditingExpense(null); setForm({description:"",amount:"",paid_by:"",splits:{}}); }}}>
               <div className="modal">
-                <h2 style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20, marginBottom:18 }}>{editingExpense ? "Edit Expense" : "Add Expense"}</h2>
+                <h2 style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20, marginBottom:18 }}>
+                  {editingExpense?"Edit Expense":"Add Expense"}
+                </h2>
                 <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
 
                   <div>
@@ -881,7 +1050,7 @@
                     <label className="label">Paid by</label>
                     <select className="input" value={form.paid_by} onChange={e=>{
                       const payer = e.target.value;
-                      setForm(f=>({ ...f, paid_by:payer, splits:payer?{...f.splits,[payer]:f.splits[payer]||2}:f.splits }));
+                      setForm(f=>({...f, paid_by:payer, splits:payer?{...f.splits,[payer]:f.splits[payer]||(splitMode==="servings"?2:0)}:f.splits}));
                     }}>
                       <option value="">Select person</option>
                       {friends.map(f=><option key={f} value={f}>{f}</option>)}
@@ -889,33 +1058,27 @@
                   </div>
 
                   <div>
-                    {/* Mode toggle header */}
+                    {/* Split mode toggle */}
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <span className="label" style={{ margin:0 }}>Split</span>
                       <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:2, gap:2 }}>
-                        {['servings','custom'].map(m=>(
+                        {["servings","custom"].map(m=>(
                           <button key={m} onClick={()=>{
                             setSplitMode(m);
-                            // When switching to custom, convert existing servings to dollar amounts
-                            if (m==='custom' && formAmt>0) {
+                            if (m==="custom"&&formAmt>0) {
                               const tot = Object.values(form.splits).reduce((a,b)=>a+b,0);
-                              if (tot>0) {
-                                setForm(f=>({ ...f, splits:Object.fromEntries(
-                                  Object.entries(f.splits).map(([n,v])=>[n, parseFloat(((v/tot)*formAmt).toFixed(2))])
-                                )}));
-                              }
+                              if (tot>0) setForm(f=>({...f, splits:Object.fromEntries(
+                                Object.entries(f.splits).map(([n,v])=>[n, parseFloat(((v/tot)*formAmt).toFixed(2))])
+                              )}));
                             }
-                            // When switching to servings, reset to 2 each
-                            if (m==='servings') {
-                              setForm(f=>({ ...f, splits:Object.fromEntries(Object.keys(f.splits).map(n=>[n,2])) }));
-                            }
+                            if (m==="servings") setForm(f=>({...f, splits:Object.fromEntries(Object.keys(f.splits).map(n=>[n,2]))}));
                           }} style={{
-                            background: splitMode===m ? "rgba(255,255,255,0.12)" : "none",
-                            border:"none", color: splitMode===m ? "#fff" : "#666",
+                            background:splitMode===m?"rgba(255,255,255,0.12)":"none",
+                            border:"none", color:splitMode===m?"#fff":"#666",
                             borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600,
-                            cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s"
+                            cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s",
                           }}>
-                            {m==='servings' ? '× Servings' : '$ Amount'}
+                            {m==="servings"?"× Servings":"$ Amount"}
                           </button>
                         ))}
                       </div>
@@ -923,54 +1086,52 @@
 
                     {/* Quick actions */}
                     <div style={{ display:"flex", justifyContent:"flex-end", gap:10, marginBottom:8 }}>
-                      {splitMode==='servings' && (
+                      {splitMode==="servings" && (
                         <button style={{ background:"none", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}
                           onClick={()=>setForm(f=>({...f, splits:Object.fromEntries(friends.map(n=>[n,2]))}))}>All ×2</button>
                       )}
-                      {splitMode==='custom' && formAmt>0 && (
+                      {splitMode==="custom"&&formAmt>0 && (
                         <button style={{ background:"none", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}
                           onClick={()=>{
-                            const each = parseFloat((formAmt / Object.keys(form.splits).length).toFixed(2));
+                            const each = parseFloat((formAmt/Object.keys(form.splits).length).toFixed(2));
                             setForm(f=>({...f, splits:Object.fromEntries(Object.keys(f.splits).map(n=>[n,each]))}));
                           }}>Split evenly</button>
                       )}
                       <span style={{ color:"#333" }}>·</span>
                       <button style={{ background:"none", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}
-                        onClick={()=>setForm(f=>({...f, splits:f.paid_by?{[f.paid_by]:splitMode==='servings'?2:0}:{}}))}>Clear</button>
+                        onClick={()=>setForm(f=>({...f, splits:f.paid_by?{[f.paid_by]:splitMode==="servings"?2:0}:{}}))}>Clear</button>
                     </div>
 
+                    {/* Person rows */}
                     <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
                       {friends.map(name=>{
-                        const isPayer  = name===form.paid_by;
-                        const isIn     = form.splits[name]!==undefined;
-                        const srv      = form.splits[name]||2;
-                        const col      = getColor(name, friends);
-                        // For servings mode: calculated share; for custom: srv IS the dollar amount
-                        const share    = splitMode==='servings'
-                          ? (isIn&&formAmt>0&&totalSrv>0 ? (srv/totalSrv)*formAmt : null)
-                          : (isIn ? srv : null);
+                        const isPayer = name===form.paid_by;
+                        const isIn    = form.splits[name]!==undefined;
+                        const srv     = form.splits[name]||(splitMode==="servings"?2:0);
+                        const col     = getColor(name, friends);
+                        const share   = splitMode==="servings"
+                          ? (isIn&&formAmt>0&&totalSrv>0?(srv/totalSrv)*formAmt:null)
+                          : (isIn?srv:null);
                         return (
                           <div key={name} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 10px", borderRadius:12,
                             border:`1.5px solid ${isIn?`${col}40`:"transparent"}`,
                             background:isIn?`${col}0d`:"transparent", transition:"all 0.15s" }}>
                             <div onClick={()=>!isPayer&&togglePerson(name)}
-                              style={{ display:"flex", alignItems:"center", gap:8, flex:1, cursor:isPayer?"default":"pointer", userSelect:"none" }}>
+                              style={{ display:"flex", alignItems:"center", gap:8, flex:1, cursor:"pointer", userSelect:"none" }}>
                               <div style={{ width:22, height:22, borderRadius:6,
                                 border:`2px solid ${isIn?col:"#3a3a4a"}`, background:isIn?col:"transparent",
                                 display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                                {isPayer
-                                  ? <span style={{ color:"#0f0f1a", fontSize:11, fontWeight:900 }}>$</span>
-                                  : isIn&&<span style={{ color:"#0f0f1a", fontSize:13, fontWeight:900 }}>✓</span>}
+                                {isIn && <span style={{ color:"#0f0f1a", fontSize:13, fontWeight:900 }}>✓</span>}
                               </div>
                               <Avatar name={name} friends={friends} size={24}/>
                               <span style={{ fontWeight:600, fontSize:14, color:isIn?"#fff":"#555" }}>{name}</span>
-                              {isPayer && <span style={{ fontSize:10, color:col, background:`${col}20`, padding:"1px 6px", borderRadius:8, fontWeight:700 }}>payer</span>}
+                              {isPayer&&<span style={{ fontSize:10, color:col, background:`${col}20`, padding:"1px 6px", borderRadius:8, fontWeight:700 }}>payer</span>}
                             </div>
                             {isIn ? (
                               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                                {splitMode==='servings' ? (
+                                {splitMode==="servings" ? (
                                   <>
-                                    {share!==null && <span style={{ fontSize:13, fontWeight:700, color:"#aaa", minWidth:48, textAlign:"right" }}>${share.toFixed(2)}</span>}
+                                    {share!==null&&<span style={{ fontSize:13, fontWeight:700, color:"#aaa", minWidth:48, textAlign:"right" }}>${share.toFixed(2)}</span>}
                                     <div className="serving-ctrl">
                                       <button className="serving-btn" onClick={e=>{e.stopPropagation();setServings(name,srv-1);}}>−</button>
                                       <span className="serving-val">{srv}</span>
@@ -980,19 +1141,13 @@
                                 ) : (
                                   <div style={{ display:"flex", alignItems:"center", gap:4 }}>
                                     <span style={{ color:"#888", fontSize:14 }}>$</span>
-                                    <input
-                                      type="number" inputMode="decimal" min="0" step="0.01"
-                                      value={srv===0?"":srv}
-                                      placeholder="0.00"
+                                    <input type="number" inputMode="decimal" min="0" step="0.01"
+                                      value={srv===0?"":srv} placeholder="0.00"
                                       onClick={e=>e.stopPropagation()}
-                                      onChange={e=>{
-                                        const v = parseFloat(e.target.value)||0;
-                                        setForm(f=>({...f, splits:{...f.splits,[name]:v}}));
-                                      }}
-                                      style={{ width:70, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)",
+                                      onChange={e=>{ const v=parseFloat(e.target.value)||0; setForm(f=>({...f,splits:{...f.splits,[name]:v}})); }}
+                                      style={{ width:72, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)",
                                         borderRadius:8, padding:"5px 8px", color:"#fff", fontSize:14,
-                                        fontFamily:"inherit", outline:"none", textAlign:"right" }}
-                                    />
+                                        fontFamily:"inherit", outline:"none", textAlign:"right" }}/>
                                   </div>
                                 )}
                               </div>
@@ -1004,31 +1159,32 @@
                       })}
                     </div>
 
-                    {Object.keys(form.splits).length>0 && formAmt>0 && (
+                    {/* Breakdown */}
+                    {Object.keys(form.splits).length>0&&formAmt>0 && (
                       <div style={{ marginTop:10, padding:"11px 13px", background:"rgba(255,255,255,0.03)", borderRadius:11, border:"1px solid rgba(255,255,255,0.07)" }}>
                         <div style={{ fontSize:10, color:"#555", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:7 }}>Breakdown</div>
                         {Object.entries(form.splits).map(([name,srv])=>{
-                          const share = splitMode==='servings' ? (srv/totalSrv)*formAmt : srv;
+                          const share = splitMode==="servings"?(srv/totalSrv)*formAmt:srv;
                           const col   = getColor(name, friends);
                           return (
                             <div key={name} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"2px 0" }}>
                               <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                                 <Avatar name={name} friends={friends} size={16}/>
                                 <span style={{ fontSize:13, color:"#ccc" }}>{name}</span>
-                                {splitMode==='servings' && <span style={{ fontSize:10, color:"#555", background:`${col}18`, padding:"1px 5px", borderRadius:6 }}>×{srv}</span>}
+                                {splitMode==="servings"&&<span style={{ fontSize:10, color:"#555", background:`${col}18`, padding:"1px 5px", borderRadius:6 }}>×{srv}</span>}
                               </div>
                               <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>${share.toFixed(2)}</span>
                             </div>
                           );
                         })}
                         <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:7, paddingTop:7, display:"flex", justifyContent:"space-between" }}>
-                          {splitMode==='servings'
+                          {splitMode==="servings"
                             ? <span style={{ fontSize:11, color:"#555" }}>{totalSrv} servings</span>
-                            : (() => {
-                                const customTotal = Object.values(form.splits).reduce((a,b)=>a+b,0);
-                                const diff = formAmt - customTotal;
-                                return <span style={{ fontSize:11, color: Math.abs(diff)>0.01?"#FF6B6B":"#4ECDC4" }}>
-                                  {Math.abs(diff)<0.01 ? "✓ Balanced" : diff>0 ? `$${diff.toFixed(2)} unassigned` : `$${Math.abs(diff).toFixed(2)} over`}
+                            : (()=>{
+                                const ct  = Object.values(form.splits).reduce((a,b)=>a+b,0);
+                                const diff = formAmt - ct;
+                                return <span style={{ fontSize:11, color:Math.abs(diff)>0.01?"#FF6B6B":"#4ECDC4" }}>
+                                  {Math.abs(diff)<0.01?"✓ Balanced":diff>0?`$${diff.toFixed(2)} unassigned`:`$${Math.abs(diff).toFixed(2)} over`}
                                 </span>;
                               })()
                           }
@@ -1041,7 +1197,7 @@
                   <div style={{ display:"flex", gap:10 }}>
                     <button className="btn btn-ghost" style={{ flex:1 }}
                       onClick={()=>{ setShowExpense(false); setEditingExpense(null); setForm({description:"",amount:"",paid_by:"",splits:{}}); }}>Cancel</button>
-                    <button className="btn btn-primary" style={{ flex:2 }} onClick={editingExpense ? updateExpense : addExpense} disabled={saving}>
+                    <button className="btn btn-primary" style={{ flex:2 }} onClick={editingExpense?updateExpense:addExpense} disabled={saving}>
                       {saving?<Spinner/>:editingExpense?"Save Changes":"Add Expense"}
                     </button>
                   </div>
@@ -1073,9 +1229,5 @@
 
     ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
   </script>
-  <style>
-    .hide-scroll::-webkit-scrollbar { display: none; }
-    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
 </body>
 </html>
