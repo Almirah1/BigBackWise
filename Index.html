@@ -277,12 +277,12 @@
       } catch { return null; }
     }
 
-    async function triggerNotify(type, record, actor) {
+    async function triggerNotify(type, record, actor, participants) {
       try {
         await fetch(EDGE_FN_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_KEY}` },
-          body: JSON.stringify({ type, record, actor }),
+          body: JSON.stringify({ type, record, actor, participants }),
         });
       } catch (e) { console.warn("notify failed", e); }
     }
@@ -475,7 +475,7 @@
           setExpenses(p=>[{...row, amount:parseFloat(row.amount), splits:{...form.splits}}, ...p]);
           setForm({description:"",amount:"",paid_by:"",splits:{}});
           setShowExpense(false);
-          triggerNotify("expense_added", row, form.paid_by);
+          triggerNotify("expense_added", row, form.paid_by, Object.keys(form.splits));
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
@@ -493,7 +493,7 @@
           )});
           setExpenses(p=>p.map(e=>e.id===editingExpense
             ? {...e, description:form.description, amount:amt, paid_by:form.paid_by, splits:{...form.splits}} : e));
-          triggerNotify("expense_edited", { description:form.description, amount:amt }, form.paid_by);
+          triggerNotify("expense_edited", { description:form.description, amount:amt }, form.paid_by, Object.keys(form.splits));
           setEditingExpense(null); setShowExpense(false);
           setForm({description:"",amount:"",paid_by:"",splits:{}});
         } catch(e) { setError(e.message); } finally { setSaving(false); }
