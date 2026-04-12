@@ -209,7 +209,7 @@
     const SUPABASE_URL  = "https://tqkimzplwikftvkkogih.supabase.co";
     const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxa2ltenBsd2lrZnR2a2tvZ2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNzQzNjMsImV4cCI6MjA4Njk1MDM2M30.BInx6X4wqrL3ZeytYG9PSsKqGNl7WRCgNn6RPZt90OY";
     const EDGE_FN_URL   = `${SUPABASE_URL}/functions/v1/notify-expense`;
-    const VAPID_PUBLIC  = "BHnCTgsVELN5tcxu5vS3eFOt2rNyYIqWeCF1q-K7LatS5n6qezBmDm184CItNWzsew2wTNfHg95ELf6gYT9nTtU";
+    const VAPID_PUBLIC  = "BB7_-0heHFVEjU1OdOXqxlrZ6zvndA1OHc8DrG0ceL1XoHZadMLZj7B1H2ppUii35DlFN0eGaaX0DFGYPsBhZO4";
 
     const BASE_HDR = {
       apikey: SUPABASE_KEY,
@@ -475,7 +475,7 @@
           setExpenses(p=>[{...row, amount:parseFloat(row.amount), splits:{...form.splits}}, ...p]);
           setForm({description:"",amount:"",paid_by:"",splits:{}});
           setShowExpense(false);
-          triggerNotify("expense_added", row, myName || form.paid_by);
+          triggerNotify("expense_added", row, form.paid_by);
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
@@ -493,7 +493,7 @@
           )});
           setExpenses(p=>p.map(e=>e.id===editingExpense
             ? {...e, description:form.description, amount:amt, paid_by:form.paid_by, splits:{...form.splits}} : e));
-          triggerNotify("expense_edited", { description:form.description, amount:amt }, myName || form.paid_by);
+          triggerNotify("expense_edited", { description:form.description, amount:amt }, form.paid_by);
           setEditingExpense(null); setShowExpense(false);
           setForm({description:"",amount:"",paid_by:"",splits:{}});
         } catch(e) { setError(e.message); } finally { setSaving(false); }
@@ -527,7 +527,7 @@
           const [row] = await sbFetch("/agenda_items", { method:"POST", body:JSON.stringify(body) });
           setAgendaItems(p=>[...p, row]);
           setNewTopic(""); setAddedBy("");
-          triggerNotify("agenda_added", row, myName || addedBy || "Someone");
+          triggerNotify("agenda_added", row, addedBy || "Someone");
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
