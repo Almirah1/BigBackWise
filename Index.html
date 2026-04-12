@@ -469,7 +469,7 @@
             date:new Date().toISOString().split("T")[0]
           })});
           await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(
-            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:row.id, person_name, servings:parseFloat(servings)||0 }))
+            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:row.id, person_name, servings: parseFloat(servings)||0 }))
           )});
           setExpenses(p=>[{...row, amount:parseFloat(row.amount), splits:{...form.splits}}, ...p]);
           setForm({description:"",amount:"",paid_by:"",splits:{}});
@@ -488,7 +488,7 @@
             body:JSON.stringify({ description:form.description, amount:amt, paid_by:form.paid_by }) });
           await sbFetch(`/expense_splits?expense_id=eq.${editingExpense}`, { method:"DELETE", extraHeaders:{Prefer:""} });
           await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(
-            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:editingExpense, person_name, servings:parseFloat(servings)||0 }))
+            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:editingExpense, person_name, servings: parseFloat(servings)||0 }))
           )});
           setExpenses(p=>p.map(e=>e.id===editingExpense
             ? {...e, description:form.description, amount:amt, paid_by:form.paid_by, splits:{...form.splits}} : e));
@@ -508,7 +508,8 @@
 
       function openEdit(exp) {
         const vals = Object.values(exp.splits);
-        const isCustom = vals.some(v => v > 99 || !Number.isInteger(v));
+        // Custom amounts have decimals or are larger than typical serving counts
+        const isCustom = vals.length > 0 && vals.some(v => !Number.isInteger(v) || v > 99);
         setSplitMode(isCustom ? "custom" : "servings");
         setForm({ description:exp.description, amount:String(exp.amount), paid_by:exp.paid_by, splits:{...exp.splits} });
         setEditingExpense(exp.id);
@@ -1116,7 +1117,7 @@
                           <div key={name} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 10px", borderRadius:12,
                             border:`1.5px solid ${isIn?`${col}40`:"transparent"}`,
                             background:isIn?`${col}0d`:"transparent", transition:"all 0.15s" }}>
-                            <div onClick={()=>!isPayer&&togglePerson(name)}
+                            <div onClick={()=>togglePerson(name)}
                               style={{ display:"flex", alignItems:"center", gap:8, flex:1, cursor:"pointer", userSelect:"none" }}>
                               <div style={{ width:22, height:22, borderRadius:6,
                                 border:`2px solid ${isIn?col:"#3a3a4a"}`, background:isIn?col:"transparent",
