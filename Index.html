@@ -390,6 +390,7 @@
       const [form,             setForm]              = useState({ description:"", amount:"", paid_by:"", splits:{} });
       const [myName,           setMyName]            = useState(() => localStorage.getItem("bbw_myname") || "");
       const [pushSub,          setPushSub]           = useState(null);
+      const [showReleaseNotes, setShowReleaseNotes]  = useState(false);
       const [pushLoading,      setPushLoading]       = useState(false);
       const [swReady,          setSwReady]           = useState(false);
 
@@ -627,7 +628,6 @@
                   {saving && <Spinner />}
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  {!loading && <span style={{ fontSize:12, color:"#555" }}>${totalExp.toFixed(0)} total</span>}
                 </div>
               </div>
               {loading
@@ -996,6 +996,18 @@
                       <div style={{ marginTop:12, fontSize:12, color:"#666" }}>Select your name above to enable notifications.</div>
                     )}
                   </div>
+
+                  {/* Release Notes */}
+                  <div className="card" style={{ padding:"16px" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                      <div>
+                        <div style={{ fontSize:16, fontWeight:700, color:"#fff", marginBottom:2 }}>Release Notes</div>
+                        <div style={{ fontSize:12, color:"#555" }}>What's new in BigBackWise</div>
+                      </div>
+                      <button className="btn btn-ghost" style={{ fontSize:12, padding:"6px 12px" }}
+                        onClick={()=>setShowReleaseNotes(true)}>View →</button>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1224,6 +1236,62 @@
               </div>
             </div>
           )}
+          {/* ── Release Notes Modal ── */}
+          {showReleaseNotes && (
+            <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowReleaseNotes(false)}>
+              <div className="modal" style={{ maxWidth:480 }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+                  <h2 style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20 }}>Release Notes</h2>
+                  <button onClick={()=>setShowReleaseNotes(false)}
+                    style={{ background:"none", border:"none", color:"#555", cursor:"pointer", fontSize:20, lineHeight:1 }}>✕</button>
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+                  {[
+                    {
+                      version:"v1.7", date:"Apr 2026",
+                      changes:["Custom split amounts ($) per person in addition to servings", "Collapsible expense cards — tap to expand details", "Fixed: payer can now be removed from their own split"]
+                    },
+                    {
+                      version:"v1.6", date:"Apr 2026",
+                      changes:["Edit existing expenses (description, amount, splits)", "Settings tab: pick who you are for auto-filled Paid By", "Simplify debts on by default"]
+                    },
+                    {
+                      version:"v1.5", date:"Apr 2026",
+                      changes:["All friends pre-selected when adding a new expense", "Settings page with identity selection persisted to device"]
+                    },
+                    {
+                      version:"v1.4", date:"Mar 2026",
+                      changes:["Agenda tab with topic tracking and discussed/pending status", "Mobile-first layout with sticky header and bottom nav", "Floating + button for quick expense entry"]
+                    },
+                    {
+                      version:"v1.3", date:"Mar 2026",
+                      changes:["Fixed expense splitting bug where payer wasn't included in split calculation", "Renamed app to BigBackWise"]
+                    },
+                    {
+                      version:"v1.0", date:"Feb 2026",
+                      changes:["Initial release: expense tracking, proportional splits, debt simplification, Supabase persistence"]
+                    },
+                  ].map(r=>(
+                    <div key={r.version}>
+                      <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:8 }}>
+                        <span style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:15, color:"#FF6B6B" }}>{r.version}</span>
+                        <span style={{ fontSize:12, color:"#555" }}>{r.date}</span>
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                        {r.changes.map((c,i)=>(
+                          <div key={i} style={{ display:"flex", gap:8, fontSize:13, color:"#bbb", lineHeight:1.4 }}>
+                            <span style={{ color:"#4ECDC4", flexShrink:0 }}>·</span>
+                            <span>{c}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
         </>
       );
     }
