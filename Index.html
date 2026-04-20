@@ -390,7 +390,10 @@
       const [form,             setForm]              = useState({ description:"", amount:"", paid_by:"", splits:{} });
       const [myName,           setMyName]            = useState(() => localStorage.getItem("bbw_myname") || "");
       const [pushSub,          setPushSub]           = useState(null);
-      const [showReleaseNotes, setShowReleaseNotes]  = useState(false);
+      const [showReleaseNotes,  setShowReleaseNotes]  = useState(false);
+      const [settleModal,       setSettleModal]        = useState(null); // {from,to,amount}
+      const [agendaCategory,    setAgendaCategory]      = useState('food'); // 'food'|'movies'|'other'
+      const [movingItem,        setMovingItem]          = useState(null); // item being moved to new category
       const [pushLoading,      setPushLoading]       = useState(false);
       const [swReady,          setSwReady]           = useState(false);
 
@@ -420,7 +423,7 @@
             sbFetch("/friends?order=created_at.asc&select=name"),
             sbFetch("/expenses?order=created_at.desc&select=id,description,amount,paid_by,date"),
             sbFetch("/expense_splits?select=expense_id,person_name,servings"),
-            sbFetch("/agenda_items?order=created_at.asc&select=id,topic,added_by,status,created_at"),
+            sbFetch("/agenda_items?order=created_at.asc&select=id,topic,added_by,status,category,created_at"),
           ]);
           const names = (fRows||[]).map(f=>f.name);
           const sm = {};
@@ -522,7 +525,7 @@
         if (!topic) return;
         setSaving(true);
         try {
-          const body = { topic, status:"pending" };
+          const body = { topic, status:"pending", category: agendaCategory };
           if (addedBy.trim()) body.added_by = addedBy.trim();
           const [row] = await sbFetch("/agenda_items", { method:"POST", body:JSON.stringify(body) });
           setAgendaItems(p=>[...p, row]);
@@ -545,6 +548,36 @@
         try {
           await sbFetch(`/agenda_items?id=eq.${id}`, { method:"DELETE", extraHeaders:{Prefer:""} });
           setAgendaItems(p=>p.filter(a=>a.id!==id));
+        } catch(e) { setError(e.message); } finally { setSaving(false); }
+      }
+
+      async function moveAgendaItem(item, newCategory) {
+        setSaving(true);
+        try {
+          await sbFetch(`/agenda_items?id=eq.${item.id}`, { method:"PATCH", body:JSON.stringify({ category: newCategory }) });
+          setAgendaItems(p=>p.map(a=>a.id===item.id ? {...a, category:newCategory} : a));
+          setMovingItem(null);
+        } catch(e) { setError(e.message); } finally { setSaving(false); }
+      }
+
+      async function recordSettlement(from, to, amount) {
+        // "from" owes "to" — record as: "to" paid "amount", split only with "from"
+        // Effect: "from" now owes 50% of amount to "to" = cancels the debt
+        // Actually cleanest: "to" paid full amount, only "from" is in the split (not "to")
+        // so from owes 100% back to to — exactly cancelling the debt
+        setSaving(true);
+        try {
+          const [row] = await sbFetch("/expenses", { method:"POST", body:JSON.stringify({
+            description: `💸 ${from} settled up with ${to}`,
+            amount, paid_by: to,
+            date: new Date().toISOString().split("T")[0]
+          })});
+          // Only "from" in the split — they owe 100% back to "to"
+          await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify([
+            { expense_id:row.id, person_name:from, servings:1 },
+          ])});
+          await loadData();
+          setSettleModal(null);
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
@@ -804,6 +837,10 @@
                             <span style={{ fontWeight:700, color:"#fff" }}>{d.to}</span>
                           </div>
                         </div>
+                        <button className="btn btn-primary" style={{ padding:"7px 12px", fontSize:12, flexShrink:0 }}
+                          onClick={()=>setSettleModal(d)}>
+                          Mark paid
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -813,70 +850,135 @@
               {/* ── AGENDA ── */}
               {tab==="agenda" && (
                 <div>
-                  <div style={{ marginBottom:16, padding:"14px 16px", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14 }}>
-                    <div className="label">Add Topic</div>
-                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                      <input className="input" placeholder="What do we need to discuss?" value={newTopic}
-                        onChange={e=>setNewTopic(e.target.value)}
-                        onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&addAgendaItem()}/>
-                      <div style={{ display:"flex", gap:10 }}>
-                        <select className="input" style={{ flex:1 }} value={addedBy} onChange={e=>setAddedBy(e.target.value)}>
-                          <option value="">Added by (optional)</option>
-                          {friends.map(f=><option key={f} value={f}>{f}</option>)}
-                        </select>
-                        <button className="btn btn-primary" style={{ flexShrink:0 }} onClick={addAgendaItem} disabled={saving||!newTopic.trim()}>
-                          {saving?<Spinner/>:"Add"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  {!loading && agendaItems.length>0 && (
-                    <div style={{ display:"flex", gap:8, marginBottom:14 }}>
-                      {[["pending","#FF6B6B",pending],["discussed","#4ECDC4",agendaItems.length-pending],["total","#777",agendaItems.length]].map(([label,color,count])=>(
-                        <div key={label} style={{ flex:1, padding:"10px 12px", background:`${color}12`, border:`1px solid ${color}25`, borderRadius:12, textAlign:"center" }}>
-                          <div style={{ fontSize:20, fontWeight:800, color }}>{count}</div>
-                          <div style={{ fontSize:11, color:"#666", marginTop:2 }}>{label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {loading && [1,2,3].map(i=><div key={i} className="skeleton" style={{ height:60, borderRadius:13, marginBottom:8 }}/>)}
-                  {!loading && agendaItems.length===0 && (
-                    <div style={{ textAlign:"center", color:"#555", padding:"60px 0" }}>
-                      <div style={{ fontSize:36, marginBottom:10 }}>📋</div>
-                      <div style={{ fontWeight:600, color:"#666" }}>No topics yet</div>
-                    </div>
-                  )}
-                  {[["pending","To Discuss"],["discussed","Discussed ✓"]].map(([status, heading])=>{
-                    const items = agendaItems.filter(a=>a.status===status);
-                    if (!items.length) return null;
+                  {/* Category tabs */}
+                  {(() => {
+                    const CATS = [
+                      { id:"food",   label:"🍽 Food",   color:"#FF6B6B" },
+                      { id:"movies", label:"🎬 Movies", color:"#B8B8FF" },
+                      { id:"other",  label:"💬 Other",  color:"#4ECDC4" },
+                    ];
+                    const catItems = agendaItems.filter(a=>(a.category||"food")===agendaCategory);
+                    const catPending = catItems.filter(a=>a.status==="pending").length;
                     return (
-                      <div key={status} style={{ marginBottom:16 }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:status==="pending"?"#888":"#444", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>{heading}</div>
-                        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                          {items.map(item=>(
-                            <div key={item.id} className={`agenda-item${status==="discussed"?" discussed":""}`}>
-                              <button className={`agenda-check${status==="discussed"?" on":""}`} onClick={()=>toggleAgenda(item)}>
-                                {status==="discussed" && <span style={{ color:"#0f0f1a", fontSize:12, fontWeight:900 }}>✓</span>}
+                      <div>
+                        {/* Category selector */}
+                        <div style={{ display:"flex", gap:6, marginBottom:16 }}>
+                          {CATS.map(c=>{
+                            const count = agendaItems.filter(a=>(a.category||"food")===c.id&&a.status==="pending").length;
+                            const active = agendaCategory===c.id;
+                            return (
+                              <button key={c.id} onClick={()=>setAgendaCategory(c.id)} style={{
+                                flex:1, padding:"9px 6px", borderRadius:12, border:`2px solid ${active?c.color:"rgba(255,255,255,0.08)"}`,
+                                background:active?`${c.color}18`:"rgba(255,255,255,0.03)",
+                                color:active?c.color:"#666", fontWeight:600, fontSize:12,
+                                cursor:"pointer", fontFamily:"inherit", position:"relative", transition:"all 0.15s",
+                              }}>
+                                {c.label}
+                                {count>0 && <span style={{ marginLeft:5, background:c.color, color:"#0f0f1a", borderRadius:10,
+                                  padding:"1px 5px", fontSize:10, fontWeight:800 }}>{count}</span>}
                               </button>
-                              <div style={{ flex:1, minWidth:0 }}>
-                                <div style={{ fontSize:14, fontWeight:500, color:status==="discussed"?"#555":"#e8e8f0",
-                                  textDecoration:status==="discussed"?"line-through":"none", lineHeight:1.4 }}>{item.topic}</div>
-                                {item.added_by && (
-                                  <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4 }}>
-                                    <Avatar name={item.added_by} friends={friends} size={14}/>
-                                    <span style={{ fontSize:11, color:"#555" }}>Added by {item.added_by}</span>
-                                  </div>
-                                )}
-                              </div>
-                              <button className="btn btn-danger" style={{ padding:"4px 8px", fontSize:12, flexShrink:0 }}
-                                onClick={()=>deleteAgendaItem(item.id)} disabled={saving}>✕</button>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
+
+                        {/* Add topic form */}
+                        <div style={{ marginBottom:16, padding:"14px 16px", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14 }}>
+                          <div className="label">Add to {CATS.find(c=>c.id===agendaCategory)?.label}</div>
+                          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                            <input className="input" placeholder="What do we need to discuss?" value={newTopic}
+                              onChange={e=>setNewTopic(e.target.value)}
+                              onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&addAgendaItem()}/>
+                            <div style={{ display:"flex", gap:10 }}>
+                              <select className="input" style={{ flex:1 }} value={addedBy} onChange={e=>setAddedBy(e.target.value)}>
+                                <option value="">Added by (optional)</option>
+                                {friends.map(f=><option key={f} value={f}>{f}</option>)}
+                              </select>
+                              <button className="btn btn-primary" style={{ flexShrink:0 }} onClick={addAgendaItem} disabled={saving||!newTopic.trim()}>
+                                {saving?<Spinner/>:"Add"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Stats */}
+                        {!loading && catItems.length>0 && (
+                          <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+                            {[["pending","#FF6B6B",catPending],["discussed","#4ECDC4",catItems.length-catPending],["total","#777",catItems.length]].map(([label,color,count])=>(
+                              <div key={label} style={{ flex:1, padding:"10px 12px", background:`${color}12`, border:`1px solid ${color}25`, borderRadius:12, textAlign:"center" }}>
+                                <div style={{ fontSize:20, fontWeight:800, color }}>{count}</div>
+                                <div style={{ fontSize:11, color:"#666", marginTop:2 }}>{label}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {loading && [1,2,3].map(i=><div key={i} className="skeleton" style={{ height:60, borderRadius:13, marginBottom:8 }}/>)}
+                        {!loading && catItems.length===0 && (
+                          <div style={{ textAlign:"center", color:"#555", padding:"40px 0" }}>
+                            <div style={{ fontSize:36, marginBottom:10 }}>{CATS.find(c=>c.id===agendaCategory)?.label.split(" ")[0]}</div>
+                            <div style={{ fontWeight:600, color:"#666" }}>No {agendaCategory} topics yet</div>
+                          </div>
+                        )}
+
+                        {/* Items grouped by status */}
+                        {[["pending","To Discuss"],["discussed","Discussed ✓"]].map(([status, heading])=>{
+                          const items = catItems.filter(a=>a.status===status);
+                          if (!items.length) return null;
+                          return (
+                            <div key={status} style={{ marginBottom:16 }}>
+                              <div style={{ fontSize:11, fontWeight:700, color:status==="pending"?"#888":"#444",
+                                textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>{heading}</div>
+                              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                                {items.map(item=>(
+                                  <div key={item.id} className={`agenda-item${status==="discussed"?" discussed":""}`}>
+                                    <button className={`agenda-check${status==="discussed"?" on":""}`} onClick={()=>toggleAgenda(item)}>
+                                      {status==="discussed" && <span style={{ color:"#0f0f1a", fontSize:12, fontWeight:900 }}>✓</span>}
+                                    </button>
+                                    <div style={{ flex:1, minWidth:0 }}>
+                                      <div style={{ fontSize:14, fontWeight:500, color:status==="discussed"?"#555":"#e8e8f0",
+                                        textDecoration:status==="discussed"?"line-through":"none", lineHeight:1.4 }}>{item.topic}</div>
+                                      {item.added_by && (
+                                        <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:3 }}>
+                                          <Avatar name={item.added_by} friends={friends} size={14}/>
+                                          <span style={{ fontSize:11, color:"#555" }}>Added by {item.added_by}</span>
+                                        </div>
+                                      )}
+                                      {/* Move to category */}
+                                      {movingItem===item.id ? (
+                                        <div style={{ display:"flex", gap:6, marginTop:7, flexWrap:"wrap" }}>
+                                          <span style={{ fontSize:11, color:"#666", alignSelf:"center" }}>Move to:</span>
+                                          {CATS.filter(c=>c.id!==agendaCategory).map(c=>(
+                                            <button key={c.id} onClick={()=>moveAgendaItem(item, c.id)}
+                                              style={{ background:`${c.color}20`, border:`1px solid ${c.color}40`, color:c.color,
+                                                borderRadius:8, padding:"3px 10px", fontSize:11, fontWeight:700,
+                                                cursor:"pointer", fontFamily:"inherit" }}>
+                                              {c.label}
+                                            </button>
+                                          ))}
+                                          <button onClick={()=>setMovingItem(null)}
+                                            style={{ background:"none", border:"none", color:"#555", cursor:"pointer", fontSize:11, fontFamily:"inherit" }}>
+                                            cancel
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <button onClick={()=>setMovingItem(item.id)}
+                                          style={{ marginTop:4, background:"none", border:"none", color:"#444",
+                                            cursor:"pointer", fontSize:11, fontFamily:"inherit", padding:0 }}>
+                                          move →
+                                        </button>
+                                      )}
+                                    </div>
+                                    <button className="btn btn-danger" style={{ padding:"4px 8px", fontSize:12, flexShrink:0 }}
+                                      onClick={()=>deleteAgendaItem(item.id)} disabled={saving}>✕</button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     );
-                  })}
+                  })()}
                 </div>
               )}
 
@@ -1292,6 +1394,40 @@
             </div>
           )}
 
+          {/* ── Settle Confirmation Modal ── */}
+          {settleModal && (
+            <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setSettleModal(null)}>
+              <div className="modal" style={{ maxWidth:360 }}>
+                <h2 style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20, marginBottom:6 }}>Mark as Paid</h2>
+                <p style={{ fontSize:13, color:"#666", marginBottom:20 }}>
+                  This will record a settlement and clear the debt from the balances.
+                </p>
+                <div style={{ padding:"16px", background:"rgba(255,255,255,0.04)", borderRadius:12, marginBottom:20, textAlign:"center" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, flexWrap:"wrap" }}>
+                    <Avatar name={settleModal.from} friends={friends} size={36}/>
+                    <div>
+                      <div style={{ fontWeight:700, color:"#fff" }}>{settleModal.from}</div>
+                      <div style={{ fontSize:12, color:"#555" }}>pays</div>
+                    </div>
+                    <div style={{ fontWeight:800, fontSize:22, color:"#4ECDC4" }}>${settleModal.amount.toFixed(2)}</div>
+                    <div>
+                      <div style={{ fontSize:12, color:"#555" }}>to</div>
+                      <div style={{ fontWeight:700, color:"#fff" }}>{settleModal.to}</div>
+                    </div>
+                    <Avatar name={settleModal.to} friends={friends} size={36}/>
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:10 }}>
+                  <button className="btn btn-ghost" style={{ flex:1 }} onClick={()=>setSettleModal(null)}>Cancel</button>
+                  <button className="btn btn-primary" style={{ flex:2 }}
+                    onClick={()=>recordSettlement(settleModal.from, settleModal.to, settleModal.amount)}
+                    disabled={saving}>
+                    {saving?<Spinner/>:"✓ Confirm Payment"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       );
     }
