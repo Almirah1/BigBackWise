@@ -561,20 +561,18 @@
       }
 
       async function recordSettlement(from, to, amount) {
-        // "from" owes "to" — record as: "to" paid "amount", split only with "from"
-        // Effect: "from" now owes 50% of amount to "to" = cancels the debt
-        // Actually cleanest: "to" paid full amount, only "from" is in the split (not "to")
-        // so from owes 100% back to to — exactly cancelling the debt
+        // "from" owes "to" $amount.
+        // To cancel: record "from" as payer, only "to" in the split.
+        // Result: "to" owes 100% back to "from" = exactly cancels the original debt.
         setSaving(true);
         try {
           const [row] = await sbFetch("/expenses", { method:"POST", body:JSON.stringify({
             description: `💸 ${from} settled up with ${to}`,
-            amount, paid_by: to,
+            amount, paid_by: from,
             date: new Date().toISOString().split("T")[0]
           })});
-          // Only "from" in the split — they owe 100% back to "to"
           await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify([
-            { expense_id:row.id, person_name:from, servings:1 },
+            { expense_id:row.id, person_name:to, servings:1 },
           ])});
           await loadData();
           setSettleModal(null);
