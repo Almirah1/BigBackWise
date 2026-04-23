@@ -392,7 +392,7 @@
       const [pushSub,          setPushSub]           = useState(null);
       const [showReleaseNotes,  setShowReleaseNotes]  = useState(false);
       const [settleModal,       setSettleModal]        = useState(null); // {from,to,amount}
-      const [agendaCategory,    setAgendaCategory]      = useState('food'); // 'food'|'movies'|'other'
+      const [agendaCategory,    setAgendaCategory]      = useState('food'); // 'food'|'movies'|'apps'|'other'
       const [movingItem,        setMovingItem]          = useState(null); // item being moved to new category
       const [pushLoading,      setPushLoading]       = useState(false);
       const [swReady,          setSwReady]           = useState(false);
@@ -853,6 +853,7 @@
                     const CATS = [
                       { id:"food",   label:"🍽 Food",   color:"#FF6B6B" },
                       { id:"movies", label:"🎬 Movies", color:"#B8B8FF" },
+                      { id:"apps",   label:"📱 App Changes",   color:"#FFE66D" },
                       { id:"other",  label:"💬 Other",  color:"#4ECDC4" },
                     ];
                     const catItems = agendaItems.filter(a=>(a.category||"food")===agendaCategory);
