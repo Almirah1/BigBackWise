@@ -310,6 +310,30 @@
     }
 
     // ── Math ──────────────────────────────────────────────────────────────────
+    // ── Currency (CNY → NZD) ───────────────────────────────────────────────
+    // Original CNY amount + rate are stored as a tag on the description,
+    // e.g. "Dinner [¥500.00 @0.236800]", so no database change is needed.
+    const CNY_TAG = /\s*\[¥([\d.]+) @([\d.]+)\]\s*$/;
+    function parseCny(desc) {
+      const m = (desc||"").match(CNY_TAG);
+      return m ? { text: desc.replace(CNY_TAG, ""), cny: parseFloat(m[1]), rate: parseFloat(m[2]) }
+               : { text: desc||"", cny: null, rate: null };
+    }
+    function tagCny(text, cny, rate) {
+      return `${text.trim()} [¥${cny.toFixed(2)} @${rate.toFixed(6)}]`;
+    }
+    async function fetchCnyRate() {
+      try {
+        const r = await fetch("https://api.frankfurter.dev/v1/latest?base=CNY&symbols=NZD");
+        const j = await r.json();
+        if (j?.rates?.NZD) return { rate: j.rates.NZD, date: j.date };
+      } catch(e) { console.warn("frankfurter failed", e); }
+      const r = await fetch("https://open.er-api.com/v6/latest/CNY");
+      const j = await r.json();
+      if (j?.rates?.NZD) return { rate: j.rates.NZD, date: (j.time_last_update_utc||"").slice(5,16) };
+      throw new Error("Couldn't get exchange rate");
+    }
+
     function getShare(amount, splits, person) {
       const total = Object.values(splits).reduce((a,b)=>a+b, 0);
       if (!total || splits[person]==null) return 0;
@@ -387,7 +411,8 @@
       const [newFriend,        setNewFriend]         = useState("");
       const [newTopic,         setNewTopic]          = useState("");
       const [addedBy,          setAddedBy]           = useState("");
-      const [form,             setForm]              = useState({ description:"", amount:"", paid_by:"", splits:{} });
+      const [form,             setForm]              = useState({ description:"", amount:"", paid_by:"", splits:{}, currency:"NZD", rate:"" });
+      const [rateInfo,         setRateInfo]          = useState({ loading:false, date:"", error:"" });
       const [myName,           setMyName]            = useState(() => localStorage.getItem("bbw_myname") || "");
       const [pushSub,          setPushSub]           = useState(null);
       const [showReleaseNotes,  setShowReleaseNotes]  = useState(false);
@@ -462,43 +487,74 @@
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
+      async function loadRate() {
+        setRateInfo({ loading:true, date:"", error:"" });
+        try {
+          const { rate, date } = await fetchCnyRate();
+          setForm(f=>({...f, rate:String(rate)}));
+          setRateInfo({ loading:false, date, error:"" });
+        } catch(e) {
+          setRateInfo({ loading:false, date:"", error:"Couldn't fetch today's rate — enter it manually" });
+        }
+      }
+
+      function switchCurrency(cur) {
+        if (cur===form.currency) return;
+        setForm(f=>({...f, currency:cur}));
+        if (cur==="CNY" && !form.rate) loadRate();
+      }
+
+      // Converts the form into what's saved: NZD amount, NZD custom splits, tagged description
+      function buildExpense() {
+        if (!form.description.trim()||!form.amount||!form.paid_by||!Object.keys(form.splits).length) return null;
+        const entered = parseFloat(form.amount);
+        if (isNaN(entered)||entered<=0) return null;
+        if (form.currency!=="CNY") return { description:form.description.trim(), amount:entered, splits:{...form.splits} };
+        const rate = parseFloat(form.rate);
+        if (isNaN(rate)||rate<=0) { setError("Enter a valid CNY → NZD rate"); return null; }
+        const amount = Math.round(entered*rate*100)/100;
+        const splits = splitMode==="custom"
+          ? Object.fromEntries(Object.entries(form.splits).map(([n,v])=>[n, Math.round(v*rate*100)/100]))
+          : {...form.splits};
+        return { description:tagCny(form.description, entered, rate), amount, splits };
+      }
+
       async function addExpense() {
-        if (!form.description||!form.amount||!form.paid_by||!Object.keys(form.splits).length) return;
-        const amt = parseFloat(form.amount);
-        if (isNaN(amt)||amt<=0) return;
+        const x = buildExpense();
+        if (!x) return;
         setSaving(true);
         try {
           const [row] = await sbFetch("/expenses", { method:"POST", body:JSON.stringify({
-            description:form.description, amount:amt, paid_by:form.paid_by,
+            description:x.description, amount:x.amount, paid_by:form.paid_by,
             date:new Date().toISOString().split("T")[0]
           })});
           await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(
-            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:row.id, person_name, servings: parseFloat(servings)||0 }))
+            Object.entries(x.splits).map(([person_name,servings])=>({ expense_id:row.id, person_name, servings: parseFloat(servings)||0 }))
           )});
-          setExpenses(p=>[{...row, amount:parseFloat(row.amount), splits:{...form.splits}}, ...p]);
-          setForm({description:"",amount:"",paid_by:"",splits:{}});
+          setExpenses(p=>[{...row, amount:parseFloat(row.amount), splits:{...x.splits}}, ...p]);
+          setForm({description:"",amount:"",paid_by:"",splits:{},currency:"NZD",rate:""});
           setShowExpense(false);
           triggerNotify("expense_added", row, form.paid_by, Object.keys(form.splits));
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
       async function updateExpense() {
-        if (!form.description||!form.amount||!form.paid_by||!Object.keys(form.splits).length) return;
-        const amt = parseFloat(form.amount);
-        if (isNaN(amt)||amt<=0) return;
+        const x = buildExpense();
+        if (!x) return;
+        const amt = x.amount;
         setSaving(true);
         try {
           await sbFetch(`/expenses?id=eq.${editingExpense}`, { method:"PATCH",
-            body:JSON.stringify({ description:form.description, amount:amt, paid_by:form.paid_by }) });
+            body:JSON.stringify({ description:x.description, amount:amt, paid_by:form.paid_by }) });
           await sbFetch(`/expense_splits?expense_id=eq.${editingExpense}`, { method:"DELETE", extraHeaders:{Prefer:""} });
           await sbFetch("/expense_splits", { method:"POST", body:JSON.stringify(
-            Object.entries(form.splits).map(([person_name,servings])=>({ expense_id:editingExpense, person_name, servings: parseFloat(servings)||0 }))
+            Object.entries(x.splits).map(([person_name,servings])=>({ expense_id:editingExpense, person_name, servings: parseFloat(servings)||0 }))
           )});
           setExpenses(p=>p.map(e=>e.id===editingExpense
-            ? {...e, description:form.description, amount:amt, paid_by:form.paid_by, splits:{...form.splits}} : e));
-          triggerNotify("expense_edited", { description:form.description, amount:amt }, form.paid_by, Object.keys(form.splits));
+            ? {...e, description:x.description, amount:amt, paid_by:form.paid_by, splits:{...x.splits}} : e));
+          triggerNotify("expense_edited", { description:x.description, amount:amt }, form.paid_by, Object.keys(x.splits));
           setEditingExpense(null); setShowExpense(false);
-          setForm({description:"",amount:"",paid_by:"",splits:{}});
+          setForm({description:"",amount:"",paid_by:"",splits:{},currency:"NZD",rate:""});
         } catch(e) { setError(e.message); } finally { setSaving(false); }
       }
 
@@ -515,7 +571,17 @@
         // Custom amounts have decimals or are larger than typical serving counts
         const isCustom = vals.length > 0 && vals.some(v => !Number.isInteger(v) || v > 99);
         setSplitMode(isCustom ? "custom" : "servings");
-        setForm({ description:exp.description, amount:String(exp.amount), paid_by:exp.paid_by, splits:{...exp.splits} });
+        const c = parseCny(exp.description);
+        if (c.cny!==null) {
+          // Re-open in CNY using the rate it was saved with
+          const splits = isCustom
+            ? Object.fromEntries(Object.entries(exp.splits).map(([n,v])=>[n, Math.round(v/c.rate*100)/100]))
+            : {...exp.splits};
+          setForm({ description:c.text, amount:String(c.cny), paid_by:exp.paid_by, splits, currency:"CNY", rate:String(c.rate) });
+          setRateInfo({ loading:false, date:"saved rate", error:"" });
+        } else {
+          setForm({ description:exp.description, amount:String(exp.amount), paid_by:exp.paid_by, splits:{...exp.splits}, currency:"NZD", rate:"" });
+        }
         setEditingExpense(exp.id);
         setShowExpense(true);
       }
@@ -634,6 +700,9 @@
       const totalExp  = expenses.reduce((s,e)=>s+e.amount, 0);
       const totalSrv  = Object.values(form.splits).reduce((a,b)=>a+b, 0);
       const formAmt   = parseFloat(form.amount)||0;
+      const sym       = form.currency==="CNY" ? "¥" : "$";
+      const formRate  = parseFloat(form.rate)||0;
+      const formNzd   = form.currency==="CNY" ? formAmt*formRate : formAmt;
       const pending   = agendaItems.filter(a=>a.status==="pending").length;
       const unreadCount = myName ? notifications.filter(n=>!n.read).length : 0;
 
@@ -715,8 +784,13 @@
                           style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 14px", cursor:"pointer", userSelect:"none" }}>
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8 }}>
-                              <span style={{ fontWeight:700, fontSize:15, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{exp.description}</span>
-                              <span style={{ fontWeight:800, fontSize:16, color:"#fff", flexShrink:0 }}>${exp.amount.toFixed(2)}</span>
+                              <span style={{ fontWeight:700, fontSize:15, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{parseCny(exp.description).text}</span>
+                              <span style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", flexShrink:0 }}>
+                                <span style={{ fontWeight:800, fontSize:16, color:"#fff" }}>${exp.amount.toFixed(2)}</span>
+                                {parseCny(exp.description).cny!==null && (
+                                  <span style={{ fontSize:11, color:"#888" }}>¥{parseCny(exp.description).cny.toFixed(2)}</span>
+                                )}
+                              </span>
                             </div>
                             <div style={{ marginTop:3, display:"flex", alignItems:"center", gap:5, flexWrap:"wrap" }}>
                               <Avatar name={exp.paid_by} friends={friends} size={14}/>
@@ -1121,7 +1195,7 @@
               onClick={()=>{
                 const payer = myName&&friends.includes(myName)?myName:"";
                 setEditingExpense(null); setSplitMode("servings");
-                setForm({description:"",amount:"",paid_by:payer,splits:Object.fromEntries(friends.map(n=>[n,2]))});
+                setForm({description:"",amount:"",paid_by:payer,splits:Object.fromEntries(friends.map(n=>[n,2])),currency:"NZD",rate:""});
                 setShowExpense(true);
               }}
               disabled={loading||friends.length===0}>+</button>
@@ -1141,7 +1215,7 @@
 
           {/* ── Add / Edit Expense Modal ── */}
           {showExpense && (
-            <div className="modal-overlay" onClick={e=>{ if(e.target===e.currentTarget){ setShowExpense(false); setEditingExpense(null); setForm({description:"",amount:"",paid_by:"",splits:{}}); }}}>
+            <div className="modal-overlay" onClick={e=>{ if(e.target===e.currentTarget){ setShowExpense(false); setEditingExpense(null); setForm({description:"",amount:"",paid_by:"",splits:{},currency:"NZD",rate:""}); }}}>
               <div className="modal">
                 <h2 style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20, marginBottom:18 }}>
                   {editingExpense?"Edit Expense":"Add Expense"}
@@ -1155,9 +1229,43 @@
                   </div>
 
                   <div>
-                    <label className="label">Amount ($)</label>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                      <span className="label" style={{ margin:0 }}>Amount ({form.currency==="CNY"?"¥ CNY":"$ NZD"})</span>
+                      <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:2, gap:2 }}>
+                        {["NZD","CNY"].map(c=>(
+                          <button key={c} onClick={()=>switchCurrency(c)} style={{
+                            background:form.currency===c?"rgba(255,255,255,0.12)":"none",
+                            border:"none", color:form.currency===c?"#fff":"#666",
+                            borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600,
+                            cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s",
+                          }}>{c==="NZD"?"$ NZD":"¥ CNY"}</button>
+                        ))}
+                      </div>
+                    </div>
                     <input className="input" type="number" inputMode="decimal" placeholder="0.00" min="0" step="0.01"
                       value={form.amount} onChange={e=>setForm(f=>({...f, amount:e.target.value}))}/>
+                    {form.currency==="CNY" && (
+                      <div style={{ marginTop:8, padding:"9px 12px", background:"rgba(78,205,196,0.06)", border:"1px solid rgba(78,205,196,0.2)", borderRadius:10 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8 }}>
+                          <span style={{ fontSize:14, fontWeight:700, color:"#4ECDC4" }}>
+                            {rateInfo.loading ? "Getting today's rate…" : formRate>0 ? `≈ NZ$${formNzd.toFixed(2)}` : "No rate yet"}
+                          </span>
+                          <button onClick={loadRate} disabled={rateInfo.loading}
+                            style={{ background:"none", border:"none", color:"#888", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}>
+                            ↻ Today's rate
+                          </button>
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:6, fontSize:12, color:"#777" }}>
+                          <span>¥1 = NZ$</span>
+                          <input type="number" inputMode="decimal" min="0" step="0.0001" value={form.rate}
+                            onChange={e=>{ setForm(f=>({...f, rate:e.target.value})); setRateInfo(r=>({...r, date:"manual", error:""})); }}
+                            style={{ width:80, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)",
+                              borderRadius:6, padding:"3px 6px", color:"#fff", fontSize:16, fontFamily:"inherit", outline:"none" }}/>
+                          {rateInfo.date && <span>· {rateInfo.date}</span>}
+                        </div>
+                        {rateInfo.error && <div style={{ fontSize:11, color:"#FF6B6B", marginTop:4 }}>{rateInfo.error}</div>}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -1192,7 +1300,7 @@
                             borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600,
                             cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s",
                           }}>
-                            {m==="servings"?"× Servings":"$ Amount"}
+                            {m==="servings"?"× Servings":`${sym} Amount`}
                           </button>
                         ))}
                       </div>
@@ -1245,7 +1353,7 @@
                               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                                 {splitMode==="servings" ? (
                                   <>
-                                    {share!==null&&<span style={{ fontSize:13, fontWeight:700, color:"#aaa", minWidth:48, textAlign:"right" }}>${share.toFixed(2)}</span>}
+                                    {share!==null&&<span style={{ fontSize:13, fontWeight:700, color:"#aaa", minWidth:48, textAlign:"right" }}>{sym}{share.toFixed(2)}</span>}
                                     <div className="serving-ctrl">
                                       <button className="serving-btn" onClick={e=>{e.stopPropagation();setServings(name,srv-1);}}>−</button>
                                       <span className="serving-val">{srv}</span>
@@ -1254,7 +1362,7 @@
                                   </>
                                 ) : (
                                   <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-                                    <span style={{ color:"#888", fontSize:14 }}>$</span>
+                                    <span style={{ color:"#888", fontSize:14 }}>{sym}</span>
                                     <input type="number" inputMode="decimal" min="0" step="0.01"
                                       value={srv===0?"":srv} placeholder="0.00"
                                       onClick={e=>e.stopPropagation()}
@@ -1287,7 +1395,7 @@
                                 <span style={{ fontSize:13, color:"#ccc" }}>{name}</span>
                                 {splitMode==="servings"&&<span style={{ fontSize:10, color:"#555", background:`${col}18`, padding:"1px 5px", borderRadius:6 }}>×{srv}</span>}
                               </div>
-                              <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>${share.toFixed(2)}</span>
+                              <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>{sym}{share.toFixed(2)}{form.currency==="CNY"&&formRate>0&&<span style={{ fontSize:11, color:"#666", fontWeight:500 }}> · NZ${(share*formRate).toFixed(2)}</span>}</span>
                             </div>
                           );
                         })}
@@ -1298,11 +1406,11 @@
                                 const ct  = Object.values(form.splits).reduce((a,b)=>a+b,0);
                                 const diff = formAmt - ct;
                                 return <span style={{ fontSize:11, color:Math.abs(diff)>0.01?"#FF6B6B":"#4ECDC4" }}>
-                                  {Math.abs(diff)<0.01?"✓ Balanced":diff>0?`$${diff.toFixed(2)} unassigned`:`$${Math.abs(diff).toFixed(2)} over`}
+                                  {Math.abs(diff)<0.01?"✓ Balanced":diff>0?`${sym}${diff.toFixed(2)} unassigned`:`${sym}${Math.abs(diff).toFixed(2)} over`}
                                 </span>;
                               })()
                           }
-                          <span style={{ fontSize:13, fontWeight:800, color:"#FF6B6B" }}>${formAmt.toFixed(2)}</span>
+                          <span style={{ fontSize:13, fontWeight:800, color:"#FF6B6B" }}>{sym}{formAmt.toFixed(2)}{form.currency==="CNY"&&formRate>0&&` ≈ NZ$${formNzd.toFixed(2)}`}</span>
                         </div>
                       </div>
                     )}
@@ -1310,7 +1418,7 @@
 
                   <div style={{ display:"flex", gap:10 }}>
                     <button className="btn btn-ghost" style={{ flex:1 }}
-                      onClick={()=>{ setShowExpense(false); setEditingExpense(null); setForm({description:"",amount:"",paid_by:"",splits:{}}); }}>Cancel</button>
+                      onClick={()=>{ setShowExpense(false); setEditingExpense(null); setForm({description:"",amount:"",paid_by:"",splits:{},currency:"NZD",rate:""}); }}>Cancel</button>
                     <button className="btn btn-primary" style={{ flex:2 }} onClick={editingExpense?updateExpense:addExpense} disabled={saving}>
                       {saving?<Spinner/>:editingExpense?"Save Changes":"Add Expense"}
                     </button>
@@ -1348,6 +1456,10 @@
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
                   {[
+                    {
+                      version:"v1.8", date:"Nov 2026",
+                      changes:["Enter expenses in CNY (¥) — converted to NZD at today's exchange rate", "Original ¥ amount shown on the expense card"]
+                    },
                     {
                       version:"v1.7", date:"Apr 2026",
                       changes:["Custom split amounts ($) per person in addition to servings", "Collapsible expense cards — tap to expand details", "Fixed: payer can now be removed from their own split"]
